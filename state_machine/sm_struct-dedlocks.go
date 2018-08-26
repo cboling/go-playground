@@ -17,6 +17,13 @@
 
 package main
 
+///////////////////////////////////////////////////////////////////////////
+//
+// NOTE: This FSM library module works nicely but does deadlocks if
+//       you try an use go routines to send events...  Trying another one...
+//
+///////////////////////////////////////////////////////////////////////////
+
 import (
 	"fmt"
 	"github.com/looplab/fsm"
