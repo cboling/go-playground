@@ -1,0 +1,46 @@
+#
+# Example onumock configuration file.
+#
+#  To use this file as the configuration file, copy it to the onumock base
+#  directory. The path to a configuration file can also be defined on the
+#  command line with the  --config=<path> option
+#
+###############################################################################
+# The first level items control overall service behaviour
+###############################################################################
+#
+# maxCPUs (0..<system-max>) Specifies the maximum number of CPUs to provide for
+#                           parallel go routine operation. A value of 0 (zero)
+#                           specifies all available CPUs.
+maxCpus:       0
+
+########
+#
+# ponCount (0..48)  The maximum number of PONs to create.  PON IDs are numbered
+#                   from 0 to <ponCount - 1>
+ponCount:     16
+
+########
+#
+# maxOnuPerPon (1..256) The maximum number of ONUs to simulate on a single PON
+#
+maxOnuPerPon: 256
+
+########
+#
+# restPort    TCP Rest port to list on for requests
+#
+restPort:     55055
+
+###############################################################################
+# PON startup / initialization configuration
+#
+#   These values decide how the PON is enabled on initialization
+ponConfig:
+  pattern:    "Enabled"   # "Enabled"    All at once (step function)
+    # "Disabled"   Leave all disabled
+    # "Sequential  Enable PONs sequentially
+  # "Random"     Enable PONs Randomly
+  delay:      10.0        # Seconds between enables if sequential/random
+  count:      1           # Number of pons per enable if sequential/random
+  reverse:    false       # If sequential, start at highest PON Id
