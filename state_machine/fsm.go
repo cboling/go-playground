@@ -1,5 +1,10 @@
 package main
 
+//
+//
+//		First test with go-fsm -> stand alone
+//
+//
 import (
 	"fmt"
 	"github.com/theckman/go-fsm"

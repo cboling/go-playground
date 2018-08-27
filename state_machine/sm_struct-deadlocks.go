@@ -79,7 +79,7 @@ func NewDoor(to string) *Door {
 }
 
 func (d *Door) enterState(e *fsm.Event) {
-	fmt.Printf("The door to %s is %s\n", d.To, e.Dst)
+	fmt.Printf("The entry to %s is %s\n", d.To, e.Dst)
 }
 
 func main() {
@@ -90,7 +90,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	fmt.Println("Starting timer to fire in 3 seconds to close the door")
+	fmt.Println("Starting timer to fire in 3 seconds to close the entry")
 	timer := time.NewTimer(3 * time.Second)
 	go func() {
 		<-timer.C

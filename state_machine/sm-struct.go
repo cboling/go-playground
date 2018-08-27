@@ -1,5 +1,10 @@
 package main
 
+//
+//
+//		Second test with go-fsm -> part of a structure
+//
+//
 import (
 	"fmt"
 	"github.com/theckman/go-fsm"
@@ -78,14 +83,14 @@ func (d *door) StateTransitionCallback(state fsm.State) error {
 	switch state {
 	case "opened":
 		log.Println("Callback: In the opened state now")
-		log.Println("Starting timer to fire in 3 seconds to close the door")
+		log.Println("Starting timer to fire in 3 seconds to close the entry")
 		timer := time.NewTimer(3 * time.Second)
 		go func() {
 			<-timer.C
 			fmt.Println("Timer expired")
 			err := d.FSM.StateTransition("closed")
 			if err != nil {
-				log.Fatalf("Failed to request that the door be closed: %v", err)
+				log.Fatalf("Failed to request that the entry be closed: %v", err)
 			}
 		}()
 
@@ -115,9 +120,9 @@ func main() {
 	// Start things off by trying to enter our initial opened state
 	err = door.FSM.StateTransition("opened")
 	if err != nil {
-		log.Printf("Failed to open an opened door: %v\n", err)
+		log.Printf("Failed to open an opened entry: %v\n", err)
 	}
-	log.Println("Starting timer to fire in 3 seconds to close the door")
+	log.Println("Starting timer to fire in 3 seconds to close the entry")
 
 	timer := time.NewTimer(3 * time.Second)
 	door.timers = append(door.timers, timer)
