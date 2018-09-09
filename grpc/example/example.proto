@@ -26,6 +26,7 @@ package example;
 service Worker {
     // Sends a single request and expect back a single response
     rpc RequestUnaryOperation(ExampleRequest) returns (ExampleResponse) {}
+    rpc BiDirectional(ExampleRequest) returns (ExampleResponse) {}
 }
 
 // The request message containing the user's name.
@@ -42,4 +43,11 @@ message ExampleResponse {
     uint32 pon_id = 2;
     uint32 onu_id = 3;
     bytes payload = 4;
+}
+
+// A message to start final cleanup of the client, the server should
+// drop/cancel any pending responses.
+
+message Shutdown {
+    string reason = 1;
 }
