@@ -1,18 +1,18 @@
 # gRPC / Protobuf Go Examples
 
-## Client/Server gRPC
-
-This is a request/response RPC example.   
-
-### grpc-server.go
-
-
-### grpc-client.go
 
 ## gRPC Stream example
 
-This is to demonstrate a source that sends to a peer consumer who then
-sends it back as a different stream.
+This is to demonstrate an asynchronouse source that sends a stream of messages to the
+peer. The peer sends messages back (on its own terms) asynchronously
+
+
+Compile protobuf in the base 'grpc' directory with the following command:
+
+```bash
+    protoc -Iexample/ --go_out=plugins=grpc:example example/example.proto
+```
+
 
 ### grpc-stream-source.go
 

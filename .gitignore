@@ -13,3 +13,4 @@
 /.idea/
 *.log
 /zeroMQ/libzmq-master/
+*.pb.go
