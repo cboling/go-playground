@@ -35,7 +35,7 @@ const (
 type server struct{}
 
 // RequestUnaryOperation implements example.WorkerServer unary response operation
-func (s *server) RequestUnaryOperation(ctx context.Context, in *example.ExampleRequest) (*example.ExampleResponse, error) {
+func (s *server) RequestUnaryOperation(ctx context.Context, in *example.UnaryRequest) (*example.UnaryResponse, error) {
 	log.Printf("Consumer: Rx Unary: %v", in)
 
 	// Swap the data in the payload and send it back
@@ -44,7 +44,7 @@ func (s *server) RequestUnaryOperation(ctx context.Context, in *example.ExampleR
 	for val := 0; val < len(myData); val++ {
 		myData[val] = in.Payload[len(myData)-val-1]
 	}
-	response := example.ExampleResponse{
+	response := example.UnaryResponse{
 		UtcTimestamp: in.UtcTimestamp,
 		PonId:        in.PonId,
 		OnuId:        in.OnuId,
@@ -54,22 +54,31 @@ func (s *server) RequestUnaryOperation(ctx context.Context, in *example.ExampleR
 	return &response, nil
 }
 
-//RequestUnaryOperation(ctx context.Context, in *ExampleRequest, opts ...grpc.CallOption) (*ExampleResponse, error)
-//RequestServerSideStream(ctx context.Context, in *ExampleRequest, opts ...grpc.CallOption) (Worker_RequestServerSideStreamClient, error)
-//RequestClientSideStream(ctx context.Context, opts ...grpc.CallOption) (Worker_RequestClientSideStreamClient, error)
-//BiDirectional(ctx context.Context, opts ...grpc.CallOption) (Worker_BiDirectionalClient, error)
+func (s *server) RequestServerSideStream(in *example.ServerRequest, stream example.Worker_RequestServerSideStreamServer) error {
+	var count uint32
+	log.Printf("Consumer: ServerSide Stream. They want %v", in.PleaseSend)
 
-func (s *server) RequestServerSideStream(ctx context.Context, in *example.ExampleRequest) (*example.ExampleResponse, error) {
-
-	return nil, nil // TODO: Implement me
+	for count = 0; count < in.PleaseSend; count++ {
+		response := example.ServerStreamResponse{
+			MsgNumber: count,
+		}
+		if err := stream.Send(&response); err != nil {
+			return err
+		}
+		if count%10 == 0 {
+			log.Printf("  Sent request #: %v", count)
+		}
+	}
+	log.Println("Finished sending all server stream requests")
+	return nil
 }
 
-func (s *server) RequestClientSideStream(in *example.ExampleRequest, stream example.Worker_RequestServerSideStreamClient) error {
+func (s *server) RequestClientSideStream(stream example.Worker_RequestClientSideStreamServer) error {
 
 	return nil // TODO: Implement me
 }
 
-func (s *server) BiDirectional(stream example.Worker_RequestClientSideStreamClient) error {
+func (s *server) BiDirectional(stream example.Worker_BiDirectionalServer) error {
 
 	return nil // TODO: Implement me
 }

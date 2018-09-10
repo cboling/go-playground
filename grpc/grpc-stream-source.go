@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/cboling/go-playground/grpc/example"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"time"
 )
@@ -43,14 +44,14 @@ func main() {
 	// Try the unary operation
 	unaryOperation(c)
 
-	// Try the client side streaming
-	clientStreaming(c)
-
 	// Try the server side streaming
 	serverStreaming(c)
 
-	// Try the server side streaming
-	biDirectionalStreaming(c)
+	// Try the client side streaming
+	//clientStreaming(c)
+	//
+	//// Try the server side streaming
+	//biDirectionalStreaming(c)
 }
 
 // This does a unary request/response operation
@@ -76,45 +77,123 @@ func unaryOperation(client example.WorkerClient) {
 	// Send it and wait for response
 	response, err := client.RequestUnaryOperation(ctx, &request)
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Fatalf("could not perform round-trip request/response: %v", err)
 	}
 	log.Printf("Unary Response: %v", response)
 }
 
 // This does a unary request/response operation
-func clientStreaming(client example.WorkerClient) {
-	// TODO: Do something
-	log.Println(client)
+func serverStreaming(client example.WorkerClient) {
+	// Send one request and get many responses
 
-	//// If here, the simple round trip worked.  Now lets create a
-	//// request generator that will periodically send out requests
-	//// to the consumer which will respond on it's own when it is ready
-	////
-	//// After a maximum number of requests, a shutdown is sent to have
-	//// the consumer abort any outstanding responces
-	//maxMessages := 100
-	//generator := requestGenerator(maxMessages, 1000*time.Millisecond)
-	//
-	//go func(gen <-chan example.UnaryRequest) {
-	//	for request := range gen {
-	//		go func(req example.UnaryRequest) {
-	//			// TODO: Send received messages to consumer
-	//			time.Sleep(5 * time.Millisecond)
-	//		}(request)
-	//	}
-	//	// TODO: Send the shutdown message
-	//}(generator)
-	//
-	//log.Println("Generator set up and active, starting response listener")
-	//// Now receive the responses
-	////responseReceiver := make(chan<- example.ExampleResponse)
-	//for {
-	//	// TODO: Receive the responses here  (use a buffered channel)
-	//	time.Sleep(5 * time.Second)
-	//	// responseReceiver <-
-	//}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
+	var numMessages uint32 = 100
+	request := example.ServerRequest{
+		PleaseSend: numMessages,
+	}
+	log.Printf("Server Streaming Tx: want %v responses", numMessages)
+
+	// Send it and wait for response
+	stream, err := client.RequestServerSideStream(ctx, &request)
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+	count := 0
+	log.Println("   Waiting for server responses")
+	for {
+		response, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("%v.RequestServerSideStream failure: %v", client, err)
+		}
+		count++
+		if count%10 == 0 {
+			log.Printf("    Got response # %v, %v", count, response)
+		}
+	}
+	log.Printf("Server Streaming completed. Got %v of %v responses",
+		count, numMessages)
 }
+
+//// This does a unary request/response operation
+//func clientStreaming(client example.WorkerClient) {
+//	// Send several request and expect one back
+//
+//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+//	defer cancel()
+//
+//	var numMessages uint32 = 100
+//	request := example.ServerRequest {
+//		PleaseSend:  numMessages,
+//	}
+//	log.Printf("Unary Tx: %v", request)
+//
+//	for {
+//		point, err := stream.Recv()
+//		if err == io.EOF {
+//			endTime := time.Now()
+//			return stream.SendAndClose(&pb.RouteSummary{
+//				PointCount:   pointCount,
+//				FeatureCount: featureCount,
+//				Distance:     distance,
+//				ElapsedTime:  int32(endTime.Sub(startTime).Seconds()),
+//			})
+//		}
+//		if err != nil {
+//			return err
+//		}
+//		pointCount++
+//		for _, feature := range s.savedFeatures {
+//			if proto.Equal(feature.Location, point) {
+//				featureCount++
+//			}
+//		}
+//		if lastPoint != nil {
+//			distance += calcDistance(lastPoint, point)
+//		}
+//		lastPoint = point
+//	}
+//
+//	log.Println(client)
+//}
+//
+//// This does a unary request/response operation
+//func biDirectionalStreaming(client example.WorkerClient) {
+//	// TODO: Do something
+//	log.Println(client)
+//}
+
+//// If here, the simple round trip worked.  Now lets create a
+//// request generator that will periodically send out requests
+//// to the consumer which will respond on it's own when it is ready
+////
+//// After a maximum number of requests, a shutdown is sent to have
+//// the consumer abort any outstanding responces
+//maxMessages := 100
+//generator := requestGenerator(maxMessages, 1000*time.Millisecond)
+//
+//go func(gen <-chan example.UnaryRequest) {
+//	for request := range gen {
+//		go func(req example.UnaryRequest) {
+//			// TODO: Send received messages to consumer
+//			time.Sleep(5 * time.Millisecond)
+//		}(request)
+//	}
+//	// TODO: Send the shutdown message
+//}(generator)
+//
+//log.Println("Generator set up and active, starting response listener")
+//// Now receive the responses
+////responseReceiver := make(chan<- example.ExampleResponse)
+//for {
+//	// TODO: Receive the responses here  (use a buffered channel)
+//	time.Sleep(5 * time.Second)
+//	// responseReceiver <-
+//}
 
 //
 //func requestGenerator(max int, interMessageDelay time.Duration) <-chan example.UnaryRequest {
@@ -136,15 +215,3 @@ func clientStreaming(client example.WorkerClient) {
 //
 //	return output
 //}
-
-// This does a unary request/response operation
-func serverStreaming(client example.WorkerClient) {
-	// TODO: Do something
-	log.Println(client)
-}
-
-// This does a unary request/response operation
-func biDirectionalStreaming(client example.WorkerClient) {
-	// TODO: Do something
-	log.Println(client)
-}
