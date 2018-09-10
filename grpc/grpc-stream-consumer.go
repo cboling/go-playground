@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	address = "localhost:50051"
+	port = ":50051"
 )
 
 // server is used to implement example.WorkerServer
@@ -36,9 +36,9 @@ type server struct{}
 
 // RequestUnaryOperation implements example.WorkerServer unary response operation
 func (s *server) RequestUnaryOperation(ctx context.Context, in *example.ExampleRequest) (*example.ExampleResponse, error) {
+	log.Printf("Consumer: Rx Unary: %v", in)
 
 	// Swap the data in the payload and send it back
-
 	myData := make([]byte, len(in.Payload))
 
 	for val := 0; val < len(myData); val++ {
@@ -50,7 +50,28 @@ func (s *server) RequestUnaryOperation(ctx context.Context, in *example.ExampleR
 		OnuId:        in.OnuId,
 		Payload:      myData,
 	}
+	log.Printf("Consumer: Urnary response: %v", response)
 	return &response, nil
+}
+
+//RequestUnaryOperation(ctx context.Context, in *ExampleRequest, opts ...grpc.CallOption) (*ExampleResponse, error)
+//RequestServerSideStream(ctx context.Context, in *ExampleRequest, opts ...grpc.CallOption) (Worker_RequestServerSideStreamClient, error)
+//RequestClientSideStream(ctx context.Context, opts ...grpc.CallOption) (Worker_RequestClientSideStreamClient, error)
+//BiDirectional(ctx context.Context, opts ...grpc.CallOption) (Worker_BiDirectionalClient, error)
+
+func (s *server) RequestServerSideStream(ctx context.Context, in *example.ExampleRequest) (*example.ExampleResponse, error) {
+
+	return nil, nil // TODO: Implement me
+}
+
+func (s *server) RequestClientSideStream(in *example.ExampleRequest, stream example.Worker_RequestServerSideStreamClient) error {
+
+	return nil // TODO: Implement me
+}
+
+func (s *server) BiDirectional(stream example.Worker_RequestClientSideStreamClient) error {
+
+	return nil // TODO: Implement me
 }
 
 func main() {

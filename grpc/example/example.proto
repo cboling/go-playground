@@ -25,12 +25,20 @@ package example;
 // The example service definition.
 service Worker {
     // Sends a single request and expect back a single response
-    rpc RequestUnaryOperation(ExampleRequest) returns (ExampleResponse) {}
-    rpc BiDirectional(ExampleRequest) returns (ExampleResponse) {}
+    rpc RequestUnaryOperation(UnaryRequest) returns (UnaryResponse) {}
+
+    // Send several requests and will be summarized in a single response
+    rpc RequestClientSideStream(stream ClientStreamRequest) returns (ClientResponse) {}
+
+    // Send a single request and get lots of responses
+    rpc RequestServerSideStream(ServerRequest) returns (stream ServerStreamResponse) {}
+
+
+    // Send back and forth like a crazy person
+    rpc BiDirectional(stream PeerMessage) returns (stream PeerMessage) {}
 }
 
-// The request message containing the user's name.
-message ExampleRequest {
+message UnaryRequest {
     int64 utc_timestamp = 1;   // UTC seconds since epoch
     uint32 pon_id = 2;
     uint32 onu_id = 3;
@@ -38,16 +46,29 @@ message ExampleRequest {
 }
 
 // The response to a request
-message ExampleResponse {
+message UnaryResponse {
     int64 utc_timestamp = 1;   // Copied from Request
     uint32 pon_id = 2;
     uint32 onu_id = 3;
     bytes payload = 4;
 }
 
-// A message to start final cleanup of the client, the server should
-// drop/cancel any pending responses.
+message ClientStreamRequest {
+    bool  IamDone= 1;       // When true, send a response
+}
 
-message Shutdown {
-    string reason = 1;
+message ClientResponse {
+    string  responseMessage = 1;    // Tell them how many we got
+}
+
+message ServerRequest {
+    uint32 pleaseSend = 1;          // How many responses
+}
+
+message ServerStreamResponse {
+    uint32 msg_number = 1;          // Which message
+}
+
+message PeerMessage {
+    string printThisPlease = 1;     // Something to log
 }
