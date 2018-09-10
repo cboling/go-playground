@@ -19,8 +19,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"io"
 	"log"
 	"net"
 
@@ -70,12 +72,36 @@ func (s *server) RequestServerSideStream(in *example.ServerRequest, stream examp
 		}
 	}
 	log.Println("Finished sending all server stream requests")
+	// NOTE: Sending the 'nil' error is how you send EOF to the client...
 	return nil
 }
 
 func (s *server) RequestClientSideStream(stream example.Worker_RequestClientSideStreamServer) error {
+	log.Println("Rx Client side stream started")
+	count := 0
+	for {
+		// Receive the next client side request, EOF sent when done.
+		request, err := stream.Recv()
 
-	return nil // TODO: Implement me
+		if err == io.EOF {
+			// Finish up the client side streaming by issuing a SendAndClose
+			// with a count of number of messages sent during this test
+			response := example.ClientResponse{
+				ResponseMessage: fmt.Sprintf("Received %v client messages", count),
+			}
+			log.Println("Rx Client side stream complete")
+			return stream.SendAndClose(&response)
+		}
+		if err != nil {
+			log.Printf("Error druing client side stream Rx: %v", err)
+			return err
+		}
+		count++
+		if count%10 == 0 {
+			log.Printf("    Rx msg# %v: %v", count, request)
+		}
+	}
+	// Note: We should really never get here...
 }
 
 func (s *server) BiDirectional(stream example.Worker_BiDirectionalServer) error {

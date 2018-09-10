@@ -33,7 +33,6 @@ service Worker {
     // Send a single request and get lots of responses
     rpc RequestServerSideStream(ServerRequest) returns (stream ServerStreamResponse) {}
 
-
     // Send back and forth like a crazy person
     rpc BiDirectional(stream PeerMessage) returns (stream PeerMessage) {}
 }
@@ -54,7 +53,7 @@ message UnaryResponse {
 }
 
 message ClientStreamRequest {
-    bool  IamDone= 1;       // When true, send a response
+    uint32 msgNumber = 1;
 }
 
 message ClientResponse {

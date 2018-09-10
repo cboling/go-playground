@@ -48,8 +48,8 @@ func main() {
 	serverStreaming(c)
 
 	// Try the client side streaming
-	//clientStreaming(c)
-	//
+	clientStreaming(c)
+
 	//// Try the server side streaming
 	//biDirectionalStreaming(c)
 }
@@ -74,7 +74,7 @@ func unaryOperation(client example.WorkerClient) {
 	}
 	log.Printf("Unary Tx: %v", request)
 
-	// Send it and wait for response
+	// Send it and wait for response, that's about it
 	response, err := client.RequestUnaryOperation(ctx, &request)
 	if err != nil {
 		log.Fatalf("could not perform round-trip request/response: %v", err)
@@ -95,7 +95,7 @@ func serverStreaming(client example.WorkerClient) {
 	}
 	log.Printf("Server Streaming Tx: want %v responses", numMessages)
 
-	// Send it and wait for response
+	// Send it and wait for responses to stream in
 	stream, err := client.RequestServerSideStream(ctx, &request)
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
@@ -119,47 +119,39 @@ func serverStreaming(client example.WorkerClient) {
 		count, numMessages)
 }
 
-//// This does a unary request/response operation
-//func clientStreaming(client example.WorkerClient) {
-//	// Send several request and expect one back
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-//	defer cancel()
-//
-//	var numMessages uint32 = 100
-//	request := example.ServerRequest {
-//		PleaseSend:  numMessages,
-//	}
-//	log.Printf("Unary Tx: %v", request)
-//
-//	for {
-//		point, err := stream.Recv()
-//		if err == io.EOF {
-//			endTime := time.Now()
-//			return stream.SendAndClose(&pb.RouteSummary{
-//				PointCount:   pointCount,
-//				FeatureCount: featureCount,
-//				Distance:     distance,
-//				ElapsedTime:  int32(endTime.Sub(startTime).Seconds()),
-//			})
-//		}
-//		if err != nil {
-//			return err
-//		}
-//		pointCount++
-//		for _, feature := range s.savedFeatures {
-//			if proto.Equal(feature.Location, point) {
-//				featureCount++
-//			}
-//		}
-//		if lastPoint != nil {
-//			distance += calcDistance(lastPoint, point)
-//		}
-//		lastPoint = point
-//	}
-//
-//	log.Println(client)
-//}
+// This does a unary request/response operation
+func clientStreaming(client example.WorkerClient) {
+	// Send several request and expect one back
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var numMessages uint32 = 100
+	log.Println("Streaming client info to server")
+
+	stream, err := client.RequestClientSideStream(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create stream: %v", err)
+	}
+	var count uint32
+	for count = 0; count < numMessages; count++ {
+		request := example.ClientStreamRequest{
+			MsgNumber: count,
+		}
+		if err := stream.Send(&request); err != nil {
+			log.Fatalf("Failed to send client stream request: %v", err)
+		}
+		if count%10 == 0 {
+			log.Printf("   Sent client stream request: %v", count)
+		}
+	}
+	// Clean up and close the stream
+	response, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Failed on final close and rx: %v", err)
+	}
+	log.Printf("Recieve response from client stream: %v", response)
+}
+
 //
 //// This does a unary request/response operation
 //func biDirectionalStreaming(client example.WorkerClient) {
