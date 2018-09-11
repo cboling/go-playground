@@ -149,7 +149,7 @@ func clientStreaming(client example.WorkerClient) {
 	if err != nil {
 		log.Fatalf("Failed on final close and rx: %v", err)
 	}
-	log.Printf("Recieve response from client stream: %v", response)
+	log.Printf("Receive response from client stream: %v", response)
 }
 
 //
