@@ -20,14 +20,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/cboling/go-playground/grpc/example"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"io"
 	"log"
 	"math/rand"
 	"net"
-
-	"github.com/cboling/go-playground/grpc/example"
+	"time"
 )
 
 const (
@@ -38,19 +38,23 @@ const (
 type server struct{}
 
 // RequestUnaryOperation implements example.WorkerServer unary response operation
-func (s *server) RequestUnaryOperation(ctx context.Context, in *example.UnaryRequest) (*example.UnaryResponse, error) {
-	log.Printf("Consumer: Rx Unary: %v", in)
+func (s *server) RequestUnaryOperation(ctx context.Context, request *example.UnaryRequest) (*example.UnaryResponse, error) {
+	log.Printf("Consumer: Rx Unary: %v", request)
 
 	// Swap the data in the payload and send it back
-	myData := make([]byte, len(in.Payload))
+	myData := make([]byte, len(request.Payload))
 
 	for val := 0; val < len(myData); val++ {
-		myData[val] = in.Payload[len(myData)-val-1]
+		myData[val] = request.Payload[len(myData)-val-1]
+	}
+	// delay if requested (used in cancel & timeout RPC example)
+	if request.ResponseDelay > 0 {
+		time.Sleep(time.Duration(request.ResponseDelay) * time.Millisecond)
 	}
 	response := example.UnaryResponse{
-		UtcTimestamp: in.UtcTimestamp,
-		PonId:        in.PonId,
-		OnuId:        in.OnuId,
+		UtcTimestamp: request.UtcTimestamp,
+		PonId:        request.PonId,
+		OnuId:        request.OnuId,
 		Payload:      myData,
 	}
 	log.Printf("Consumer: Urnary response: %v", response)

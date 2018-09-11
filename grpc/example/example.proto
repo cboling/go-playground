@@ -42,6 +42,7 @@ message UnaryRequest {
     uint32 pon_id = 2;
     uint32 onu_id = 3;
     bytes payload = 4;
+    uint32 response_delay = 5;
 }
 
 // The response to a request

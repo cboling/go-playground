@@ -43,7 +43,7 @@ func main() {
 	c := example.NewWorkerClient(conn)
 
 	// Try the unary operation
-	unaryOperation(c)
+	unaryOperation(c, 5*time.Second, 0)
 
 	// Try the server side streaming
 	serverStreaming(c)
@@ -53,11 +53,17 @@ func main() {
 
 	// Try the server side streaming
 	biDirectionalStreaming(c)
+
+	// Try a cancel test.  Use Unary Operation
+	// Try the unary operation
+	unaryOperation(c, 5*time.Second, 1*time.Second)
+
+	// Try a timeout test
 }
 
 // This does a unary request/response operation
-func unaryOperation(client example.WorkerClient) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func unaryOperation(client example.WorkerClient, timeout time.Duration, delay uint32) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	// Create request to send
@@ -68,10 +74,11 @@ func unaryOperation(client example.WorkerClient) {
 	now := time.Now()
 
 	request := example.UnaryRequest{
-		UtcTimestamp: now.UnixNano(),
-		PonId:        0,
-		OnuId:        127,
-		Payload:      payload,
+		UtcTimestamp:  now.UnixNano(),
+		PonId:         0,
+		OnuId:         127,
+		Payload:       payload,
+		ResponseDelay: delay,
 	}
 	log.Printf("Unary Tx: %v", request)
 
