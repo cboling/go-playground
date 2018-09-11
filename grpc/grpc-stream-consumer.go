@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 
 	"github.com/cboling/go-playground/grpc/example"
@@ -105,8 +106,39 @@ func (s *server) RequestClientSideStream(stream example.Worker_RequestClientSide
 }
 
 func (s *server) BiDirectional(stream example.Worker_BiDirectionalServer) error {
+	// For this example, the client (source) side will close the connection when it
+	// thinks it has had enough
 
-	return nil // TODO: Implement me
+	log.Println("BiDirectional streaming has started")
+	numRequests := 0
+	for {
+		request, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		numRequests++
+		// For each request received, send 3-5 back
+		numBack := int(rand.Int31n(2) + 3)
+		log.Printf("   Rx: %v, well take that back %v times", request, numBack)
+
+		for count := 0; count < numBack; count++ {
+			response := example.PeerMessage{
+				PrintThisPlease: fmt.Sprintf("  %v of %v: back atcha: %v", count,
+					numRequests, request.PrintThisPlease),
+			}
+			err := stream.Send(&response)
+			if err != nil {
+				log.Printf("Failed to send response %v of sequence %v", count,
+					numRequests)
+				return err
+			}
+		}
+	}
+	log.Println("BiDirectional streaming has finished")
+	return nil
 }
 
 func main() {

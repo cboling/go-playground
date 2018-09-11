@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/cboling/go-playground/grpc/example"
 	"google.golang.org/grpc"
 	"io"
@@ -50,8 +51,8 @@ func main() {
 	// Try the client side streaming
 	clientStreaming(c)
 
-	//// Try the server side streaming
-	//biDirectionalStreaming(c)
+	// Try the server side streaming
+	biDirectionalStreaming(c)
 }
 
 // This does a unary request/response operation
@@ -152,12 +153,54 @@ func clientStreaming(client example.WorkerClient) {
 	log.Printf("Receive response from client stream: %v", response)
 }
 
-//
-//// This does a unary request/response operation
-//func biDirectionalStreaming(client example.WorkerClient) {
-//	// TODO: Do something
-//	log.Println(client)
-//}
+// This does a unary request/response operation
+func biDirectionalStreaming(client example.WorkerClient) {
+	// For this example, we send 10 messages and the server will spit
+	// back 3-5 responses.  When we finish, we (client side) will close
+	// the connection.  When the server side sees our EOF, it will close
+	// it's connection and our go routine for Rx will see that
+	log.Println("Starting up bi-directional comms")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Create the connection
+	stream, err := client.BiDirectional(ctx)
+	if err != nil {
+		log.Fatalf("%v.RouteChat(_) = _, %v", client, err)
+	}
+	// Use a done channel to signal server side has closed
+	done := make(chan struct{})
+
+	// Use a go-routine to receive our response stream from the server
+	go func(d chan struct{}) {
+		for {
+			response, err := stream.Recv()
+			if err == io.EOF {
+				// read done.
+				close(d)
+				return
+			}
+			if err != nil {
+				log.Fatalf("Failed to receive a responjse : %v", err)
+			}
+			log.Printf("   Got a response: %v", response.PrintThisPlease)
+		}
+	}(done)
+
+	// Now source our client requests
+	for count := 0; count < 10; count++ {
+		request := example.PeerMessage{
+			PrintThisPlease: fmt.Sprintf("Client request %v", count),
+		}
+		if err := stream.Send(&request); err != nil {
+			log.Fatalf("Failed to send client request: %v", err)
+		}
+	}
+	stream.CloseSend()
+	<-done
+
+	log.Println("Ending bi-directional comms")
+}
 
 //// If here, the simple round trip worked.  Now lets create a
 //// request generator that will periodically send out requests
