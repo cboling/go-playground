@@ -49,7 +49,7 @@ func (s *server) RequestUnaryOperation(ctx context.Context, request *example.Una
 	}
 	// delay if requested (used in cancel & timeout RPC example)
 	if request.ResponseDelay > 0 {
-		time.Sleep(time.Duration(request.ResponseDelay) * time.Millisecond)
+		time.Sleep(time.Duration(request.ResponseDelay))
 	}
 	response := example.UnaryResponse{
 		UtcTimestamp: request.UtcTimestamp,

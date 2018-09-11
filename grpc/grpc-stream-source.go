@@ -62,7 +62,7 @@ func main() {
 }
 
 // This does a unary request/response operation
-func unaryOperation(client example.WorkerClient, timeout time.Duration, delay uint32) {
+func unaryOperation(client example.WorkerClient, timeout time.Duration, delay time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -78,7 +78,7 @@ func unaryOperation(client example.WorkerClient, timeout time.Duration, delay ui
 		PonId:         0,
 		OnuId:         127,
 		Payload:       payload,
-		ResponseDelay: delay,
+		ResponseDelay: uint32(delay),
 	}
 	log.Printf("Unary Tx: %v", request)
 
