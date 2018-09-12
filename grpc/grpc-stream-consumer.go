@@ -41,6 +41,13 @@ type server struct{}
 func (s *server) RequestUnaryOperation(ctx context.Context, request *example.UnaryRequest) (*example.UnaryResponse, error) {
 	log.Printf("Consumer: Rx Unary: %v", request)
 
+	// Did it pass over any context metadata (via context.WithValue(ctx, "key", value)
+	//    Note we use the word "key" as the key in this case
+	value, ok := ctx.Value("Key").(int)
+	if ok {
+		log.Printf("    Consumer: found context data for key 'Key': %v", value)
+	}
+
 	// Swap the data in the payload and send it back
 	myData := make([]byte, len(request.Payload))
 

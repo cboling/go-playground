@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/cboling/go-playground/grpc/example"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	"io"
 	"log"
 	"time"
@@ -54,11 +55,8 @@ func main() {
 	// Try the server side streaming
 	biDirectionalStreaming(c)
 
-	// Try a cancel test.  Use Unary Operation
-	// Try the unary operation
-	unaryOperation(c, 5*time.Second, 1*time.Second)
-
-	// Try a timeout test
+	// Try tests that catch failure scenarios
+	contextTests(c)
 }
 
 // This does a unary request/response operation
@@ -207,6 +205,122 @@ func biDirectionalStreaming(client example.WorkerClient) {
 	<-done
 
 	log.Println("Ending bi-directional comms")
+}
+
+// Test various failure cases.  Basically a unary test with a failure
+func contextTests(client example.WorkerClient) {
+
+	///////////////////////////////////////////////////////////////////
+	// Timeout on the response by having the far-end delay too long
+	{
+		timeout := time.Second
+		delay := 2 * time.Second
+
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		// Create request to send
+		payload := make([]byte, 32)
+		now := time.Now()
+
+		request := example.UnaryRequest{
+			UtcTimestamp:  now.UnixNano(),
+			PonId:         0,
+			OnuId:         127,
+			Payload:       payload,
+			ResponseDelay: uint32(delay),
+		}
+		log.Printf("Unary Tx: %v", request)
+
+		// Send it and wait for response, that's about it
+		_, err := client.RequestUnaryOperation(ctx, &request)
+		if err != nil {
+			log.Println("Expect a timeout (deadline exceeded):")
+			printErrorInfo(err)
+			log.Println("")
+
+		}
+	}
+	///////////////////////////////////////////////////////////////////
+	// Set a deadline of 2 seconds from now, but delay 5
+	{
+		deadline := time.Now().Add(2 * time.Second)
+		delay := 2 * time.Second
+
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
+
+		// Create request to send
+		payload := make([]byte, 32)
+		now := time.Now()
+
+		request := example.UnaryRequest{
+			UtcTimestamp:  now.UnixNano(),
+			PonId:         0,
+			OnuId:         127,
+			Payload:       payload,
+			ResponseDelay: uint32(delay),
+		}
+		log.Printf("Unary Tx: %v", request)
+
+		// Send it and wait for response, that's about it
+		_, err := client.RequestUnaryOperation(ctx, &request)
+		if err != nil {
+			log.Println("Expect a deadline exceeded error")
+			printErrorInfo(err)
+			log.Println("")
+
+		}
+	}
+	///////////////////////////////////////////////////////////////////
+	// Send over some contex tinformation
+	{
+		timeout := 2 * time.Second
+		delay := 0 * time.Second
+
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		//    Note we use the word "Key" as the key in this case (the key
+		//    for passing context just needs to be a compariable object).
+		vctx := context.WithValue(ctx, "Key", 123)
+
+		// Create request to send
+		payload := make([]byte, 32)
+		now := time.Now()
+
+		request := example.UnaryRequest{
+			UtcTimestamp:  now.UnixNano(),
+			PonId:         0,
+			OnuId:         127,
+			Payload:       payload,
+			ResponseDelay: uint32(delay),
+		}
+		log.Printf("Unary Tx: %v", request)
+
+		// Send it and wait for response, that's about it
+		response, err := client.RequestUnaryOperation(vctx, &request)
+		if err != nil {
+			log.Println("We expected this to work")
+			printErrorInfo(err)
+			log.Println("")
+
+		}
+		log.Printf("Unary Response: %v", response)
+	}
+}
+
+func printErrorInfo(err error) {
+	errorCode := status.Code(err)
+	sts := status.Convert(err)
+	log.Printf("      Error: %v", err)
+	log.Printf("  ErrorCode: %v", errorCode)
+	log.Printf("     Status: %v", sts)
+	log.Printf("                Code: %v", sts.Code())
+	log.Printf("               Proto: %v", sts.Message())
+	log.Printf("             Details: %v", sts.Details())
+	log.Printf("                 Err: %v", sts.Err())
+	log.Printf("               Proto: %v", sts.Proto())
+
 }
 
 //// If here, the simple round trip worked.  Now lets create a
