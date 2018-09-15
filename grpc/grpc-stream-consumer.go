@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/cboling/go-playground/grpc/example"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"io"
 	"log"
@@ -41,13 +42,10 @@ type server struct{}
 func (s *server) RequestUnaryOperation(ctx context.Context, request *example.UnaryRequest) (*example.UnaryResponse, error) {
 	log.Printf("Consumer: Rx Unary: %v", request)
 
-	// Did it pass over any context metadata (via context.WithValue(ctx, "key", value)
-	//    Note we use the word "key" as the key in this case
-	value, ok := ctx.Value("Key").(int)
+	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		log.Printf("    Consumer: found context data for key 'Key': %v", value)
+		log.Printf("   Received incoming metadata: %v", md)
 	}
-
 	// Swap the data in the payload and send it back
 	myData := make([]byte, len(request.Payload))
 

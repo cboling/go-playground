@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/cboling/go-playground/grpc/example"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"io"
 	"log"
@@ -208,6 +209,7 @@ func biDirectionalStreaming(client example.WorkerClient) {
 }
 
 // Test various failure cases.  Basically a unary test with a failure
+// or sending context/metadata to remote
 func contextTests(client example.WorkerClient) {
 
 	///////////////////////////////////////////////////////////////////
@@ -273,16 +275,14 @@ func contextTests(client example.WorkerClient) {
 		}
 	}
 	///////////////////////////////////////////////////////////////////
-	// Send over some contex tinformation
+	// Send over some context information via metadata
 	{
-		timeout := 2 * time.Second
 		delay := 0 * time.Second
-
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		//    Note we use the word "Key" as the key in this case (the key
-		//    for passing context just needs to be a compariable object).
-		vctx := context.WithValue(ctx, "Key", 123)
+		md := metadata.Pairs(
+			"Key1", "hello",
+			"Key2", "world",
+		)
+		ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 		// Create request to send
 		payload := make([]byte, 32)
@@ -295,10 +295,10 @@ func contextTests(client example.WorkerClient) {
 			Payload:       payload,
 			ResponseDelay: uint32(delay),
 		}
-		log.Printf("Unary Tx: %v", request)
+		log.Printf("Unary Tx with context %v", request)
 
 		// Send it and wait for response, that's about it
-		response, err := client.RequestUnaryOperation(vctx, &request)
+		response, err := client.RequestUnaryOperation(ctx, &request)
 		if err != nil {
 			log.Println("We expected this to work")
 			printErrorInfo(err)
