@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2018 - present.  Boling Consulting Solutions (bcsw.net)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
+import re
+import json
+from text import ascii_only
+from tables import Table
+
+
+class SectionList(object):
+    """ A list of sections (Headings + Paragraphs + Tables) that can be saved/restored"""
+
+    def __init__(self):
+        self._sections = list()
+
+    def __getitem__(self, item):
+        return self._sections[item]  # delegate to li.__getitem__
+
+    def __iter__(self):
+        for section in self._sections:
+            yield section
+
+    def __len__(self):
+        return len(self._sections)
+
+    def add(self, section):
+        assert isinstance(section, SectionHeading), 'Invalid type'
+        self._sections.append(section)
+        return self
+
+    def get(self, index):
+        return self._sections[index]
+
+    def save(self, filepath):
+        data = json.dumps(self.as_dict_list(), indent=2, separators=(',', ': '))
+        with open(filepath, 'w') as f:
+            f.write(data)
+
+    def load(self, filepath):
+        self._sections = list()
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+            for head in data:
+                section = SectionHeading()
+                section.content = head['contents']
+                section.style_name = head['style_name']
+                section.section_number = head['section_number']
+                section.title = head['title']
+                section.section_points = head['section_points']
+
+                self._sections.append(section)
+
+    def as_dict_list(self):
+        # Contents is special
+        results = list()
+
+        for item in self._sections:
+            contents = [x if isinstance(x, int) else x.__dict__ for x in item.contents]
+            results.append(
+                {
+                    'contents': contents,
+                    'style_name': item.style_name,
+                    'section_number': item.section_number,
+                    'title': item.title,
+                    'section_points': item.section_points,
+                })
+        return results
+
+
+class SectionHeading(object):
+    """
+    A section object holds both the title of a given section as well as the
+    paragraph numbers of text and table entries within it (until the next section)
+
+    NOTE: This should not be confused with the docx Section object that is
+          provides page setting and format information
+    """
+    def __init__(self):
+        self.contents = list()     # First paragraph holds the heading paragraph
+                                   # If (int) then paragraph number, else (Table)
+                                   # then our Table object
+        self.style_name = None
+        self.section_number = None
+        self.title = None
+        self.section_points = []
+
+    def __str__(self):
+        return 'Section: {}: {}, paragraphs: {}'.format(self.section_number,
+                                                        self.title,
+                                                        self.paragraph_numbers)
+
+    @property
+    def paragraph_numbers(self):
+        return [p for p in self.contents if isinstance(p, int)]
+
+    @property
+    def tables(self):
+        return [p for p in self.contents if isinstance(p, Table)]
+
+    def add_contents(self, content):
+        self.contents.append(content)
+
+    @staticmethod
+    def create(number, paragraph):
+        section = SectionHeading()
+
+        section._contents = [number]
+
+        if paragraph is  None:
+            return section
+
+        section.style_name = paragraph.style.name
+
+        try:
+            assert 'heading ' in section.style_name.lower(), 'Heading style not found'
+            if isinstance(paragraph.text, list):
+                heading_txt = ascii_only(" ".join(paragraph.text))
+            else:
+                heading_txt = ascii_only(paragraph.text)
+
+            # Split into section number and section title
+            headings = re.findall(r"[^\s']+", heading_txt)
+
+            assert len(headings) >= 2, \
+                "Foreign Heading string format: '{}'".format(paragraph.text)
+
+            section.section_number = headings[0]
+            section.title = ' '.join(headings[1:])
+            section.section_points = [pt for pt in section.section_number.split('.')]
+
+            return section
+
+        except Exception as _e:
+            raise
