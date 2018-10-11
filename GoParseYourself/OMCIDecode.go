@@ -12,5 +12,5 @@ package GoParseYourself
 // TODO: Read over Brad Israel's blog article:  http://www.bisrael8191.com/Go-Packet-Sniffer/
 
 func main() {
-	
+
 }
