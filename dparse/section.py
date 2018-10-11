@@ -79,6 +79,11 @@ class SectionList(object):
                 })
         return results
 
+    def dump(self):
+        for num, entry in enumerate(self):
+            print('Section: {}'.format(num))
+            entry.dump()
+
 
 class SectionHeading(object):
     """
@@ -145,3 +150,18 @@ class SectionHeading(object):
 
         except Exception as _e:
             raise
+
+    def dump(self, prefix="  "):
+        tbls = [t for t in self.contents if isinstance(t, Table)]
+
+        print('{}Number      : {} / pts: {}'.format(prefix, self.section_number, self.section_points))
+        print('{}# Paragraphs: {}'.format(prefix, len(self.paragraph_numbers)))
+        print('{}# Tables    : {}'.format(prefix, len(tbls)))
+
+        if len(tbls):
+            for tnum, tbl in enumerate(tbls):
+                print('{}  List Entry:  {}'.format(prefix, tnum))
+                tbl.dump(prefix="  " + prefix)
+            print('{}-------------------------------------'.format(prefix))
+
+

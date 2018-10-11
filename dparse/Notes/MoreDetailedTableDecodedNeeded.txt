@@ -1,0 +1,136 @@
+A few examples where we may need some deeper decoding or some title cleanup
+
+============================================================================================
+============================================================================================
+============================================================================================
+============================================================================================
+Section: 37
+  Number      : 9.1.5 / pts: ['9', '1', '5']
+  # Paragraphs: 40
+  # Tables    : 3
+    List Entry:  0
+    Doc Tbl #:   16
+    Full Title:  Attribute value change
+    Short Title: Attribute value change
+    Headings:    ('Number', 'Attribute value change', 'Description')
+    # Rows:      7
+    # Cols:      3
+    List Entry:  1
+    Doc Tbl #:   17
+    Full Title:  Alarm (Note 2)
+    Short Title: Alarm (Note 2)
+    Headings:    ('Alarm number', 'Alarm', 'Description')
+    # Rows:      7
+    # Cols:      3
+    List Entry:  2
+    Doc Tbl #:   18
+    Full Title:  Table 9.1.5-1  Plug-in unit types
+    Short Title: Plug-in unit types
+    Headings:    ('Coding', 'Content', 'Description')
+    # Rows:      46
+    # Cols:      3
+  -------------------------------------
+Section: 54
+  Number      : 9.2.6 / pts: ['9', '2', '6']
+  # Paragraphs: 0
+  # Tables    : 0
+Section: 55
+  Number      : 9.2.7 / pts: ['9', '2', '7']
+  # Paragraphs: 11
+  # Tables    : 0
+Section: 56
+  Number      : 9.2.8 / pts: ['9', '2', '8']
+  # Paragraphs: 13
+  # Tables    : 1
+    List Entry:  0
+    Doc Tbl #:   38
+    Full Title:  Threshold crossing alert
+    Short Title: Threshold crossing alert
+    Headings:    ('Alarm number', 'Threshold crossing alert', 'Threshold value attribute No. (Note)')
+    # Rows:      2
+    # Cols:      3
+  -------------------------------------
+Section: 82
+  Number      : 9.3.10 / pts: ['9', '3', '10']
+  # Paragraphs: 44
+  # Tables    : 0
+Section: 83
+  Number      : 9.3.11 / pts: ['9', '3', '11']
+  # Paragraphs: 28
+  # Tables    : 1
+    List Entry:  0
+    Doc Tbl #:   52
+    Full Title:  Table 9.3.11-1 - Forward operation attribute values
+    Short Title: Forward operation attribute values
+    Headings:    ('Forward operation', 'Type of received frame', 'Type of received frame')
+    # Rows:      35
+    # Cols:      3
+  -------------------------------------
+Section: 84
+  Number      : 9.3.12 / pts: ['9', '3', '12']
+  # Paragraphs: 41
+  # Tables    : 0
+Section: 85
+  Number      : 9.3.13 / pts: ['9', '3', '13']
+  # Paragraphs: 160
+  # Tables    : 2
+    List Entry:  0
+    Doc Tbl #:   53
+    Full Title:  Table 9.3.13-1 - Common VLAN tagging operations
+    Short Title: Common VLAN tagging operations
+    Headings:    ('Action type', 'Filter', 'Filter', 'Filter', 'Filter', 'Filter', 'Filter', 'Filter', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Table 9.3.13-1 - Common VLAN tagging operations', 'Action type')
+    # Rows:      29
+    # Cols:      17
+    List Entry:  1
+    Doc Tbl #:   54
+    Full Title:  Table 9.3.13-2 - Downstream mode use case examples
+    Short Title: Downstream mode use case examples
+    Headings:    ('Upstream action type', 'Filter', 'Filter', 'Filter', 'Filter', 'Filter', 'Filter', 'Filter', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Treatment', 'Downstream action', 'Downstream action', 'Downstream action', 'Downstream action', '')
+    # Rows:      29
+    # Cols:      20
+  -------------------------------------
+Section: 127
+  Number      : 9.7.6 / pts: ['9', '7', '6']
+  # Paragraphs: 93
+  # Tables    : 4
+    List Entry:  0
+    Doc Tbl #:   100
+    Full Title:  None
+    Short Title: None
+    Headings:    ('Attribute value', 'Annex A of [ITU-T-G.993.2] ', 'Annex B of [ITU-T- G.993.2]', 'Annex C of [ITU-T- G.993.2]')
+    # Rows:      7
+    # Cols:      4
+    List Entry:  1
+    Doc Tbl #:   101
+    Full Title:  None
+    Short Title: None
+    Headings:    ('col-1', 'col-2', 'col-3')
+    # Rows:      11
+    # Cols:      3
+    List Entry:  2
+    Doc Tbl #:   102
+    Full Title:  Table 9.7.6-1  Limit mask definitions for each class mask
+    Short Title: Limit mask definitions for each class mask
+    Headings:    ('PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', 'PSD mask classes', '', 'Annex-A')
+    # Rows:      75
+    # Cols:      13
+    List Entry:  3
+    Doc Tbl #:   103
+    Full Title:  Table 9.7.6-2 - VDSL2 US0 PSD masks definition
+    Short Title: VDSL2 US0 PSD masks definition
+    Headings:    ('Bit', 'US0MASK, Annex A of [ITU-T G.993.2]')
+    # Rows:      37
+    # Cols:      2
+  -------------------------------------
+Section: 183
+  Number      : 9.8.2 / pts: ['9', '8', '2']
+  # Paragraphs: 12
+  # Tables    : 1
+    List Entry:  0
+    Doc Tbl #:   123
+    Full Title:  None
+    Short Title: None
+    Headings:    ('', 'Bit', 'Bit', 'Bit', 'Bit', 'Bit', 'Bit', 'Bit', 'Bit')
+    # Rows:      5
+    # Cols:      9
+  -------------------------------------

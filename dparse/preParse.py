@@ -106,6 +106,9 @@ class Main(object):
 
         print('Section pre-parsing are complete')
 
+        print("Lets dump as much out as we can to verify some things")
+        sections.dump()
+
         # Restore and verify
         sections.load(self.args['output'])
 

@@ -145,9 +145,9 @@ class Table(object):
                 if table.heading is None:
                     # Title or just a heading?
                     text_tuple = tuple(text)
-                    title = next((t for t in text_tuple if 'Table ' in t or 'Table-' in t),None)
+                    title = next((t for t in text_tuple if 'Table ' in t or 'Table-' in t), None)
 
-                    if title is not None:
+                    if title is not None and table.full_title is None:
                         # Table with a numbered title
                         if 'Table-' in title:
                             title = 'Table ' + title[6:]
@@ -155,18 +155,22 @@ class Table(object):
                         table.full_title = title.strip()
                         tparts = re.findall(r"[^\s']+", table.full_title)
                         table.table_number = tparts[1]
-                        table.short_title = ' '.join(tparts[2:])
+                        table.short_title = ' '.join(tparts[3:] if tparts[2] == '-' else tparts[2:])
                         continue
 
-                    elif any('table_head' in c.paragraphs[0].style.name.lower() for c in row.cells) \
-                            or any('attribute follower' in c.paragraphs[0].style.name.lower() for c in row.cells):
-                        # Table with column headings and no title
-                        table.heading = text_tuple
-                        continue
-
-                    elif all(text_tuple[0].strip().lower() == t.strip().lower() for t in text_tuple[1:]):
+                    elif all(text_tuple[0].strip().lower() == t.strip().lower() for t in text_tuple[1:])\
+                            and table.full_title is None:
                         table.full_title = next((t.strip() for t in text_tuple if len(t.strip())), text_tuple[0])
                         table.short_title = table.full_title
+                        continue
+
+                    elif (any('table_head' in c.paragraphs[0].style.name.lower() for c in row.cells)
+                          or any('attribute follower' in c.paragraphs[0].style.name.lower() for c in row.cells)) \
+                            and table.full_title is None:
+                        # Table with column headings and no title
+                        table.heading = text_tuple
+                        # table.full_title = next((t.strip() for t in text_tuple if len(t.strip())), text_tuple[0])
+                        # table.short_title = table.full_title
                         continue
 
                     elif any('table_text' in c.paragraphs[0].style.name.lower() for c in row.cells) \
@@ -196,3 +200,11 @@ class Table(object):
 
         except Exception as _e:
             raise
+
+    def dump(self, prefix="  "):
+        print('{}Doc Tbl #:   {}'.format(prefix, self.doc_table_number))
+        print('{}Full Title:  {}'.format(prefix, self.full_title))
+        print('{}Short Title: {}'.format(prefix, self.short_title))
+        print('{}Headings:    {}'.format(prefix, self.heading))
+        print('{}# Rows:      {}'.format(prefix, len(self.rows)))
+        print('{}# Cols:      {}'.format(prefix, self.num_columns))
