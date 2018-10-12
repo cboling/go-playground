@@ -33,6 +33,7 @@ def parse_args():
     return {
         'itu': 'T-REC-G.988-201711-I!!MSW-E.docx',
         'sections': 'G.988.Sections.json',
+        'preparsed': 'G.988.PreCompiled.json',
         'output': 'G.988.Parsed.json',
         'me-start': MESectionStartLabel,
         'me-end': MESectionEndLabel,
@@ -72,7 +73,7 @@ class Main(object):
             if next_para.style.builtin and 'heading ' in next_para.style.name.lower():
                 break
 
-        print('Found {} text sections'.format(len(text)))
+        # print('Found {} text sections'.format(len(text)))
 
         return cid_list
 
@@ -87,14 +88,13 @@ class Main(object):
     def get_tables(self, tables):
         return TableList.create(tables)
 
-
     def start(self):
         print("Loading ITU Document '{}' and parsed Section Header file '{}'".
               format(self.args['itu'], self.args['sections']))
 
         document = self.load_itu_document()
         self.sections = SectionList()
-        self.sections.load(self.args['sections'])
+        self.sections.load(self.args['preparsed'])
 
         self.paragraphs = document.paragraphs
         # doc_sections = document.sections

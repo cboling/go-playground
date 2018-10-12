@@ -119,8 +119,8 @@ class Table(object):
         self.doc_table_number = None        # Index into document table list
         self.num_columns = 0
         self.full_title = None
-        self.table_number = None            # From full title string
         self.short_title = None             # From full title string
+        self.table_number = None            # From full title string
 
     def __str__(self):
         return 'Table {}: columns: {}, rows: {}, {}'.format(self.doc_table_number,

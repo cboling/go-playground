@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
@@ -55,11 +56,31 @@ class SectionList(object):
             data = json.load(f)
             for head in data:
                 section = SectionHeading()
-                section.content = head['contents']
                 section.style_name = head['style_name']
                 section.section_number = head['section_number']
                 section.title = head['title']
                 section.section_points = head['section_points']
+
+                for content in head['contents']:
+                    if isinstance(content, int):
+                        section.contents.append(content)
+                    elif isinstance(content, dict):
+                        table = Table()
+
+                        table.heading = content.get('heading')
+                        table.doc_table_number = content.get('doc_table_number')
+                        table.table_number = content.get('table_number')
+                        table.num_columns = content.get('num_columns')
+                        table.full_title = content.get('full_title')
+                        table.short_title = content.get('short_title')
+
+                        if isinstance(content.get('rows'), list):
+                            for row in content['rows']:
+                                table.rows.append(row)
+
+                        section.contents.append(table)
+                    else:
+                        print('Unknown type: {}'.format(type(content)))
 
                 self._sections.append(section)
 
