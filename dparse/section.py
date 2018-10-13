@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (c) 2018 - present.  Boling Consulting Solutions (bcsw.net)
 #
@@ -11,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
@@ -104,6 +103,19 @@ class SectionList(object):
         for num, entry in enumerate(self):
             print('Section: {}'.format(num))
             entry.dump()
+
+    def find_section(self, section_number):
+        entry = next((s for s in self if s.section_number == section_number), None)
+
+        if entry is not None:
+            return entry
+
+        raise KeyError('Section {} not found'.format(section_number))
+
+    def find_section_by_name(self, name):
+        name_lower = name.replace(' ', '').lower()
+        return next((s for s in self
+                    if s.title.replace(' ', '').lower() == name_lower), None)
 
 
 class SectionHeading(object):

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
@@ -21,7 +21,7 @@ from docx import Document
 from section import SectionHeading, SectionList
 from class_id import ClassIdList, ClassId
 from tables import TableList, Table
-from text import ascii_only
+from text import ascii_only, camelcase
 
 
 MESectionStartLabel = "9.1.1"   # First to read
@@ -53,54 +53,6 @@ class Main(object):
     def load_itu_document(self):
         return Document(self.args['itu'])
 
-    def parse_me_class_ids(self):
-        """
-        Look for a specific section and determine the table it is in.
-
-        After finding the section, this is more focused on the latest
-        G.988 document where the list is in the one and only table
-        """
-        cid_list = ClassIdList()
-        cid_heading_section = self.find_section(self.args['me-class-section'])
-
-        if cid_heading_section is not None:
-            cid_table = next((c for c in cid_heading_section.contents
-                              if isinstance(c, Table)), None)
-            if cid_table is not None:
-                headings = cid_table.heading
-                for row in cid_table.rows:
-                    try:
-                        cid = ClassId()
-                        cid.cid = int(row.get(headings[0]))
-                        cid.name = row.get(headings[1])
-                        cid_list.add(cid)
-
-                        cid.section = self.find_section_by_name(cid.name)
-
-                    except ValueError as _e:
-                        pass        # Expected for reserved range statements
-
-                    except Exception as _e:
-                        pass              # Not expected
-
-        return cid_list
-
-    def find_section(self, section_number):
-        entry = next((s for s in self.sections if s.section_number == section_number), None)
-
-        if entry is not None:
-            return entry
-
-        raise KeyError('Section {} not found'.format(section_number))
-
-    def find_section_by_name(self, name):
-        name_lower = name.replace(' ', '').lower()
-        return next((s for s in self.sections
-                    if s.title.replace(' ', '').lower() == name_lower), None)
-
-    def get_tables(self, tables):
-        return TableList.create(tables)
-
     def start(self):
         print("Loading ITU Document '{}' and parsed Section Header file '{}'".
               format(self.args['itu'], self.args['sections']))
@@ -116,8 +68,28 @@ class Main(object):
 
         print('Extracting ME Class ID values')
 
-        self.class_ids = self.parse_me_class_ids()
-        print('Found {} ME Class ID entries'.format(len(self.class_ids)))
+        self.class_ids = ClassIdList.parse_sections(self.sections,
+                                                    self.args['me-class-section'])
+
+        print('Found {} ME Class ID entries. {} have sections associated to them'.
+              format(len(self.class_ids), len([c for c in self.class_ids.values()
+                                               if c.section is not None])))
+
+        print('Managed Entities without Sections')
+        for c in [c for c in self.class_ids.values() if c.section is None]:
+            print('    {:>4}: {}'.format(c.cid, c.name))
+
+        # Work with what we have
+        self.class_ids = {cid: c for cid, c in self.class_ids.items()
+                          if c.section is not None}
+        print('')
+        print('Parsing deeper for managed Entities with Sections')
+        for c in self.class_ids.values():
+            print('    {:>9}:  {:>4}: {} -> {}'.format(c.section.section_number,
+                                                       c.cid,
+                                                       c.name,
+                                                       camelcase(c.name)))
+            c.deep_parse(self.paragraphs)
 
 
 if __name__ == '__main__':

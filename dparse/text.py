@@ -15,6 +15,13 @@
 import types
 
 
+def camelcase(inp):
+    """
+    Convert input into CamelCase variable
+    """
+    return ''.join(i for i in inp.title() if not i.isspace())
+
+
 def ascii_only(input_text):
     """
     Map Word Text to best ASCII equivalents
