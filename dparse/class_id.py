@@ -41,6 +41,7 @@ class ClassId(object):
     def __init__(self):
         self.cid = None                 # Class Id
         self.name = None                # Title
+        self.section = None             # Document section
         self.heading_para_no = None     # Paragraph number of section with heaself.ding
 
     def __str__(self):

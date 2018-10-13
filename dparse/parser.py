@@ -54,26 +54,34 @@ class Main(object):
         return Document(self.args['itu'])
 
     def parse_me_class_ids(self):
-        """ Look for a specific section and determine the table it is in"""
+        """
+        Look for a specific section and determine the table it is in.
+
+        After finding the section, this is more focused on the latest
+        G.988 document where the list is in the one and only table
+        """
         cid_list = ClassIdList()
         cid_heading_section = self.find_section(self.args['me-class-section'])
 
-        # The first paragraph number for a section is the heading paragraph
-        # heading_paragraph = self.paragraphs[cid_heading_section.paragraph_number[0]]
-        # next = cid_heading_section.paragraph_number + 1
-        # text = list()
+        if cid_heading_section is not None:
+            cid_table = next((c for c in cid_heading_section.contents
+                              if isinstance(c, Table)), None)
+            if cid_table is not None:
+                headings = cid_table.heading
+                for row in cid_table.rows:
+                    try:
+                        cid = ClassId()
+                        cid.cid = int(row.get(headings[0]))
+                        cid.name = row.get(headings[1])
+                        cid_list.add(cid)
 
-        for pnum in cid_heading_section.paragraph_numbers:
-            next_para = self.paragraphs[pnum]
+                        cid.section = self.find_section_by_name(cid.name)
 
-            print('Paragraph : {}'.format(pnum))
-            print('  Style   : {}'.format(next_para.style.name))
-            print('  Contents: {}'.format(ascii_only(next_para.text)))
+                    except ValueError as _e:
+                        pass        # Expected for reserved range statements
 
-            if next_para.style.builtin and 'heading ' in next_para.style.name.lower():
-                break
-
-        # print('Found {} text sections'.format(len(text)))
+                    except Exception as _e:
+                        pass              # Not expected
 
         return cid_list
 
@@ -84,6 +92,11 @@ class Main(object):
             return entry
 
         raise KeyError('Section {} not found'.format(section_number))
+
+    def find_section_by_name(self, name):
+        name_lower = name.replace(' ', '').lower()
+        return next((s for s in self.sections
+                    if s.title.replace(' ', '').lower() == name_lower), None)
 
     def get_tables(self, tables):
         return TableList.create(tables)
@@ -99,9 +112,7 @@ class Main(object):
         self.paragraphs = document.paragraphs
         # doc_sections = document.sections
         # styles = document.styles
-        self.body = document.element.body
-
-        tables = self.get_tables(document.tables)
+        # self.body = document.element.body
 
         print('Extracting ME Class ID values')
 

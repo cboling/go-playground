@@ -126,7 +126,6 @@ class Main(object):
         """
         if isinstance(parent, _Document):
             parent_elm = parent.element.body
-            # print(parent_elm.xml)
         elif isinstance(parent, _Cell):
             parent_elm = parent._tc
         else:

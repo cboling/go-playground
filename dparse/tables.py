@@ -141,12 +141,11 @@ class Table(object):
 
                 # Establish the mapping based on the first row
                 # headers; these will become the keys of our dictionary
-
                 if table.heading is None:
                     # Title or just a heading?
                     text_tuple = tuple(text)
-                    title = next((t for t in text_tuple if 'Table ' in t or 'Table-' in t), None)
-
+                    title = next((t for t in text_tuple if 'Table ' in t or 'Table-' in t),
+                                 None)
                     if title is not None and table.full_title is None:
                         # Table with a numbered title
                         if 'Table-' in title:
@@ -158,42 +157,36 @@ class Table(object):
                         table.short_title = ' '.join(tparts[3:] if tparts[2] == '-' else tparts[2:])
                         continue
 
-                    elif all(text_tuple[0].strip().lower() == t.strip().lower() for t in text_tuple[1:])\
-                            and table.full_title is None:
-                        table.full_title = next((t.strip() for t in text_tuple if len(t.strip())), text_tuple[0])
+                    elif all(text_tuple[0].strip().lower() == t.strip().lower()
+                             for t in text_tuple[1:]) and table.full_title is None:
+                        table.full_title = next((t.strip() for t in text_tuple
+                                                 if len(t.strip())), text_tuple[0])
                         table.short_title = table.full_title
                         continue
 
-                    elif (any('table_head' in c.paragraphs[0].style.name.lower() for c in row.cells)
-                          or any('attribute follower' in c.paragraphs[0].style.name.lower() for c in row.cells)) \
-                            and table.full_title is None:
-                        # Table with column headings and no title
+                    elif (any('table_head' in c.paragraphs[0].style.name.lower()
+                              for c in row.cells)
+                          or any('attribute follower' in c.paragraphs[0].style.name.lower()
+                                 for c in row.cells)):
+                        # Table with column headings and no title (or title found already)
                         table.heading = text_tuple
-                        # table.full_title = next((t.strip() for t in text_tuple if len(t.strip())), text_tuple[0])
-                        # table.short_title = table.full_title
                         continue
 
-                    elif any('table_text' in c.paragraphs[0].style.name.lower() for c in row.cells) \
-                            or any('attribute' in c.paragraphs[0].style.name.lower() for c in row.cells):
+                    elif any('table_text' in c.paragraphs[0].style.name.lower()
+                             for c in row.cells) \
+                            or any('attribute' in c.paragraphs[0].style.name.lower()
+                                   for c in row.cells):
                         # Table with without heading
-                        table.heading = tuple('col-{}'.format(n) for n in range(1, table.num_columns+1))
+                        table.heading = tuple('col-{}'.format(n)
+                                              for n in range(1, table.num_columns+1))
                         continue
 
                     else:
-                        # Default type (low importance usually)
+                        # Default type
                         table.heading = text_tuple
                         continue
 
-                # elif row_num == 1 and table.full_title is not None:
-                #     text_tuple = tuple(text)
-                #     table.heading = text_tuple
-                #     continue
-
-                # Construct a dictionary for this row, mapping
-                # keys to values for this row
-                # row_data = dict(zip(table.heading, ascii_only(text)))
                 row_data = dict(zip(table.heading, text))
-
                 table.rows.append(row_data)
 
             return table
