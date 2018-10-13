@@ -63,3 +63,83 @@ def ascii_only(input_text):
              else replacements[ord(i)] if ord(i) >= 128 and ord(i) in replacements
              else i if ord(i) < 128
              else u' ' for i in text])
+
+
+########################################################################
+# Headers
+
+def is_heading_style(style):
+    """ True if this is a style used as a heading """
+    return 'Heading' in style.name[:len('Heading')]
+
+
+def is_relationships_header(paragraph):
+    """ True if this  paragraph is a heading for the Relationships section """
+    text = ascii_only(paragraph.text).strip()
+    return text == 'Relationships' and is_heading_style(paragraph.style)
+
+
+def is_attributes_header(paragraph):
+    """ True if this paragraph is a heading for the Attributes section """
+    text = ascii_only(paragraph.text).strip()
+    return text == 'Attributes' and is_heading_style(paragraph.style)
+
+
+def is_operations_header(paragraph):
+    """ True if this paragraph is a heading for the Actions/Message-Types section """
+    text = ascii_only(paragraph.text).strip()
+    return text == 'Actions' and is_heading_style(paragraph.style)
+
+
+########################################################################
+# Text section styles
+
+def is_normal_style(style):
+    """ True if this is a style used for normal paragraph text """
+    return 'Normal' in style.name[:len('Normal')]
+
+
+def is_description_style(style):
+    """ True if this is a style used for Relationships paragraph text """
+    return 'Normal' in style.name[:len('Normal')]
+
+
+def is_relationships_style(style):
+    """ True if this is a style used for Relationships paragraph text """
+    return 'Description' in style.name[:len('Description')]
+
+
+def is_attribute_style(style):
+    """ True if this is a style used for Attributes paragraph text """
+    return 'Attribute' in style.name[:len('Attribute')]
+
+
+def is_operations_style(style):
+    """ True if this is a style used for Relationships paragraph text """
+    return 'Attribute' in style.name[:len('Attribute')]
+
+
+########################################################################
+# Text sections text
+
+def is_description_text(paragraph):
+    """ True if this is a style used for Attributes paragraph text """
+    return is_description_style(paragraph.style)
+
+
+def is_relationships_text(paragraph):
+    """ True if this is a style used for Attributes paragraph text """
+    return not is_relationships_header(paragraph) and is_relationships_style(paragraph.style)
+
+
+def is_attribute_text(paragraph):
+    """ True if this is a style used for Attributes paragraph text """
+    return not is_attributes_header(paragraph) and is_attribute_style(paragraph.style)
+
+
+def is_operations_text(paragraph):
+    """ True if this is a style used for Operations/msg-types paragraph text """
+    return not is_operations_header(paragraph) and is_operations_style(paragraph.style)
+
+
+

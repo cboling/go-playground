@@ -97,21 +97,19 @@ class ClassId(object):
 
     TRANSITIONS = [
         # While in initial 'basic' state
-        {'trigger': 'normal', 'source': 'basic', 'dest': 'description'},
+        {'trigger': 'normal', 'source': 'initial', 'dest': 'description'},
+        {'trigger': 'description', 'source': 'initial', 'dest': 'description'},
         {'trigger': 'relationship', 'source': 'initial', 'dest': 'relationships'},
         {'trigger': 'attribute', 'source': 'initial', 'dest': 'attributes'},
 
         # While in 'description' state
         {'trigger': 'normal', 'source': 'description', 'dest': 'description'},
         {'trigger': 'relationship', 'source': 'description', 'dest': 'relationships'},
-        {'trigger': 'attribute', 'source': 'description', 'dest': 'attribute'},
-        # {'trigger': '', 'source': 'description', 'dest': ''},
+        {'trigger': 'attribute', 'source': 'description', 'dest': 'attributes'},
 
         # While in 'relationships' state
         {'trigger': 'normal', 'source': 'relationships', 'dest': 'relationships'},
-        {'trigger': 'attribute', 'source': 'relationships', 'dest': 'attribute'},
-        # {'trigger': '', 'source': 'relationships', 'dest': ''},
-        # {'trigger': '', 'source': 'relationships', 'dest': ''},
+        {'trigger': 'attribute', 'source': 'relationships', 'dest': 'attributes'},
 
         # While in 'attributes' state
         {'trigger': 'normal', 'source': 'attributes', 'dest': 'attributes'},
@@ -166,6 +164,7 @@ class ClassId(object):
         self.section = None               # Document section
 
         self.parser = initial_parser
+        self._paragraphs = None
         self.machine = Machine(model=self, states=ClassId.STATES,
                                transitions=ClassId.TRANSITIONS,
                                initial='initial',
@@ -173,8 +172,8 @@ class ClassId(object):
                                name='{}-{}'.format(self.name, self.cid))
 
         # Following hold lists of paragraph numbers
-        self.description = list()         # Description
-        self.relationships = list()       # Relationships paragraph (if any)
+        self._description = list()        # Description (paragraph numbers)
+        self._relationships = list()      # Relationships paragraph # (if any)
 
         # Following hold lists of associated objects
         self.attributes = list()          # Ordered list of attributes
@@ -186,78 +185,98 @@ class ClassId(object):
         self.hidden = False               # Not reported or ignore in MIB upload
 
     def __str__(self):
-        return 'ClassId: {}: {}'.format(self.cid, self.name)
+        return 'ClassId: {}: {}, State: {}'.format(self.cid, self.name, self.state)
 
     def deep_parse(self, paragraphs):
         """ Fill out detailed class information """
         if self.section is None:
             return self
 
+        self._paragraphs = paragraphs
         for content in self.section.contents:
             try:
                 if isinstance(content, int):
                     # Paragraph number
-                    trigger = self.parser(content, paragraphs)
+                    trigger, text = self.parser(content, paragraphs)
 
                 elif isinstance(content, Table):
                     # Table object
                     # TODO: trigger = self.parser(content, paragraphs)
-                    pass
+                    trigger, text = None
 
                 else:
                     raise NotImplementedError('Unknown content type: {}'.
                                               format(type(content)))
+                # process info
+                getattr(self, trigger)(text, content)
+
             except Exception as e:
                 self.failure()
-                print("FAILURE: Exited deep parsing: '{}'".format(e.message))
+                print("FAILURE: Exiting deep parsing: '{}'".format(e.message))
                 break
 
         return self
 
-    def on_enter_initial(self):
+    def on_enter_initial(self, _text, _content):
         self.parser = initial_parser
-        pass
+        raise NotImplementedError('Start in initial state, but never transition to it')
 
-    def on_enter_description(self):
+    def on_enter_description(self, text, content):
+        """
+        Detected description text for the ME. Save paragraph number
+        if parser returned text
+        """
         self.parser = description_parser
-        pass
 
-    def on_enter_relationships(self):
+        if text is not None and len(text):
+            self._description.append(content)
+
+    def on_enter_relationships(self, text, content):
+        """
+        Detected description text for the ME. Save paragraph number
+        if parser returned text
+        """
         self.parser = relationships_parser
-        pass
 
-    def on_enter_attributes(self):
+        if text is not None and len(text):
+            self._description.append(content)
+
+    def on_enter_attributes(self, text, content):
         self.parser = attributes_parser
-        pass
+        if text is not None and len(text):
+            paragraph = self._paragraphs[content]
+            pass
+            pass
+            pass
 
-    def on_enter_operations(self):
+    def on_enter_operations(self, text, content):
         self.parser = operations_parser
         pass
 
-    def on_enter_optionals(self):
+    def on_enter_optionals(self, text, content):
         self.parser = optionals_parser
         pass
 
-    def on_enter_notifications(self):
+    def on_enter_notifications(self, text, content):
         self.parser = notifications_parser
         pass
 
-    def on_enter_alarms(self):
+    def on_enter_alarms(self, text, content):
         self.parser = alarms_parser
         pass
 
-    def on_enter_avcs(self):
+    def on_enter_avcs(self, text=None, content=None):
         self.parser = avcs_parser
         pass
 
-    def on_enter_tests(self):
+    def on_enter_tests(self, text=None, content=None):
         self.parser = tests_parser
         pass
 
-    def on_enter_complete(self):
+    def on_enter_complete(self, text=None, content=None):
         self.parser = None
         pass
 
-    def on_enter_failure(self):
+    def on_enter_failure(self, text=None, content=None):
         self.parser = None
         pass
