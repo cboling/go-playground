@@ -73,6 +73,20 @@ def is_heading_style(style):
     return 'Heading' in style.name[:len('Heading')]
 
 
+def is_ignored_heading(paragraph):
+    text = paragraph.text[:12].lower()
+    return 'Heading' in paragraph.style.name[:len('Heading')] and \
+        any(x[:12].lower() in text for x in ('Fundamental usage',
+                                             'todo - abc'))
+
+
+def is_eos_heading(paragraph):          # End of ME section - ignore rest
+    text = paragraph.text[:12].lower()
+    return 'Heading' in paragraph.style.name[:len('Heading')] and \
+        any(x[:12].lower() in text for x in ('Vendor-specific usage',
+                                             'todo - abc'))
+
+
 def is_relationships_header(paragraph):
     """ True if this  paragraph is a heading for the Relationships section """
     text = ascii_only(paragraph.text).strip()
@@ -117,57 +131,78 @@ def is_tests_header(paragraph):
     """ True if this paragraph is a heading for the Test Results section """
     text = ascii_only(paragraph.text).strip()
     # TODO: If Alarms are always paragraphs without headers, clean this up
-    is_test = 'Test Result' and is_heading_style(paragraph.style)
+    is_test = text == 'Test Result' and is_heading_style(paragraph.style)
     return is_test
 
 
 ########################################################################
 # Text section styles
 
+
+def is_style(style, text):
+    return text in style.name[:len(text)]
+
+
 def is_normal_style(style):
     """ True if this is a style used for normal paragraph text """
-    return 'Normal' in style.name[:len('Normal')]
+    return is_style(style, 'Normal')
 
 
 def is_description_style(style):
     """ True if this is a style used for Relationships paragraph text """
-    return 'Normal' in style.name[:len('Normal')]
+    return is_style(style, 'Normal') or is_style(style, 'Note')
 
 
 def is_relationships_style(style):
     """ True if this is a style used for Relationships paragraph text """
-    return 'Description' in style.name[:len('Description')]
+    return is_style(style, 'Description')
 
 
 def is_attribute_style(style):
     """ True if this is a style used for Attributes paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')] \
-           or 'Note' in style.name[:len('Note')]
+    return is_style(style, 'Attribute') or is_style(style, 'Note')
 
 
 def is_actions_style(style):
     """ True if this is a style used for Actions paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')]
+    return is_style(style, 'Attribute')
 
 
 def is_notifications_style(style):
     """ True if this is a style used for Notifications paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')]
+    return is_style(style, 'Attribute')
 
 
 def is_avcs_style(style):
     """ True if this is a style used for AVCs paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')]
+    return is_style(style, 'Attribute')
 
 
 def is_alarms_style(style):
     """ True if this is a style used for Alarms paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')]
+    return is_style(style, 'Attribute') or is_style(style, 'Note') or \
+           is_style(style, 'Normal') or is_figure_style(style) or \
+           is_figure_title_style(style)
 
 
 def is_tests_style(style):
     """ True if this is a style used for Test Results paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')]
+    return is_style('Attribute')
+
+
+def is_figure_style(style):
+    """ True if this is a style used for a figure"""
+    return is_style(style, 'Figure') and not is_figure_title_style(style)
+
+
+def is_figure_title_style(style):
+    """ True if this is a style used for text under a figure"""
+    return is_style(style, 'Figure_')
+
+
+def is_enum_style(style):
+    """ True if this is a style used for enumeration (bullet lists, ...)"""
+    return is_style(style, 'enumlev')
 
 
 ########################################################################
@@ -180,7 +215,9 @@ def is_description_text(paragraph):
 
 def is_relationships_text(paragraph):
     """ True if this is a style used for Attributes paragraph text """
-    return not is_relationships_header(paragraph) and is_relationships_style(paragraph.style)
+    return not is_relationships_header(paragraph) and \
+        (is_relationships_style(paragraph.style) or
+         is_attribute_style(paragraph.style))
 
 
 def is_attribute_text(paragraph):
@@ -200,17 +237,17 @@ def is_notifications_text(paragraph):
 
 def is_avcs_text(paragraph):
     """ True if this is a style used for Attribute Value Change paragraph text """
-    return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
+    return not is_avcs_header(paragraph) and is_avcs_style(paragraph.style)
 
 
 def is_alarms_text(paragraph):
     """ True if this is a style used for Alarms paragraph text """
-    return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
+    return not is_alarms_header(paragraph) and is_alarms_style(paragraph.style)
 
 
 def is_tests_text(paragraph):
-    """ True if this is a style used for Notifications paragraph text """
-    return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
+    """ True if this is a style used for Test Results paragraph text """
+    return not is_tests_header(paragraph) and is_tests_style(paragraph.style)
 
 
 ########################################################################

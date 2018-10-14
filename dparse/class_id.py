@@ -20,6 +20,7 @@ from contents import *
 from attributes import AttributeList, Attribute
 from actions import Actions
 from avc import AVC
+from alarms import Alarm
 
 
 class ClassIdList(object):
@@ -92,7 +93,8 @@ class ClassIdList(object):
 class ClassId(object):
     """ Managed Entity Class Information """
     STATES = ['initial', 'description', 'relationships', 'attributes', 'actions',
-              'notifications', 'alarms', 'avcs', 'tests', 'complete', 'failure']
+              'notifications', 'alarms', 'avcs', 'tests', 'complete', 'failure',
+              'end_of_section']
 
     TRANSITIONS = [
         # While in initial 'basic' state
@@ -130,7 +132,7 @@ class ClassId(object):
         {'trigger': 'test', 'source': 'alarms', 'dest': 'tests'},
 
         # While in 'avc' state
-        {'trigger': 'normal', 'source': 'avcs', 'dest': 'source'},
+        {'trigger': 'normal', 'source': 'avcs', 'dest': 'avcs'},
         {'trigger': 'alarm', 'source': 'avcs', 'dest': 'alarms'},
         {'trigger': 'test', 'source': 'avcs', 'dest': 'tests'},
 
@@ -139,7 +141,8 @@ class ClassId(object):
         {'trigger': 'alarm', 'source': 'tests', 'dest': 'alarms'},
         {'trigger': 'avc', 'source': 'tests', 'dest': 'avcs'},
 
-        # Do wildcard 'complete' trigger last so it covers all previous states
+        # Do wildcard triggers last so it covers all previous states
+        {'trigger': 'end_of_section', 'source': '*', 'dest': 'end_of_section'},
         {'trigger': 'complete', 'source': '*', 'dest': 'complete'},
         {'trigger': 'failure', 'source': '*', 'dest': 'failure'},
     ]
@@ -198,8 +201,8 @@ class ClassId(object):
 
             except Exception as e:
                 self.failure(None, None)
-                print("FAILURE: Exiting deep parsing: '{}'".format(e.message))
-                break
+                print("FAILURE: Exiting deep parsing: '{}'", e.message)
+                raise       # TODO     break
 
         return self
 
@@ -249,7 +252,7 @@ class ClassId(object):
                 raise KeyError('Unable to decode initial attribute: class_id: {}'.
                                format(self))
 
-            raise NotImplementedError('TODO: Support Tables')
+            last.parse_attribute_settings_from_text(content, None)
 
     def on_enter_actions(self, text, content):
         self.parser = actions_parser
@@ -273,7 +276,7 @@ class ClassId(object):
                 # Typical to get 'None.' if no notifications supported
                 # TODO: Breakpoint if it is not 'None.' for debugging
                 if 'none' not in ascii_only(text).strip().lower():
-                    print('Found something. {}'.format(text))
+                    print('Found something. {}', text)
 
         elif isinstance(content, Table):
                 raise NotImplementedError('TODO: Support Tables')
@@ -281,25 +284,24 @@ class ClassId(object):
     def on_enter_alarms(self, text, content):
         self.parser = alarms_parser
         if isinstance(content, int):
-            if text is not None and len(text):
+            # We currently ignore extra alarm text
+            # TODO: verify no ME uses this to describe alarms
+            pass
+
+        elif isinstance(content, Table):
+            alarm = Alarm.create_from_table(content)
+            if alarm is not None:
+                assert self.alarms is None, 'Alarms have already been decoded'
+                self.alarms = alarm
+            else:
+                # Some MEs have additional descriptions and tables related
+                # to the alarms, but we do not have any interest in them.
                 pass
-                # attribute = Attribute.create_from_paragraph(content,
-                #                                             self._paragraphs[content])
-                # if attribute is not None:
-                #     self.attributes.add(attribute)
-                # else:
-                #     last = self.attributes[-1:] if len(self.attributes) else None
-                #     if last is None:
-                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
-                #                        format(self))
-                #
-                #     last.description.append(content)
-        else:
-            raise NotImplementedError('TODO: Support Tables')
 
     def on_enter_avcs(self, text, content):
         self.parser = avcs_parser
         if isinstance(content, int):
+            # TODO: Delete if no one calls this
             if text is not None and len(text):
                 pass
 
@@ -333,6 +335,10 @@ class ClassId(object):
 
     def on_enter_failure(self, _text, _content):
         self.parser = None
+
+    def on_enter_end_of_section(self, _text, _content):
+        """ Handles trailing information that we do not care or support"""
+        self.parser = eos_parser
 
 
 if __name__ == '__main__':

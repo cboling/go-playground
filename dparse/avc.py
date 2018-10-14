@@ -24,7 +24,8 @@ class AVC(object):
     the first attribute (#0) in an ME and it is never covered by an AVC.
     """
     def __init__(self, table):
-        self.table = table
+        # Table number for debug purposes
+        self._table_no = table.doc_table_number
         self._attributes = {
             attr: (False,       # If True, AVC for attribute
                    'N/A'        # Attribute Name
@@ -69,6 +70,10 @@ class AVC(object):
                                               description.strip())
 
                 except ValueError:  # Expected if of form  n..m
+                    # Watch out for commentary text in AVC tables. Ofter a NOTE at the end
+                    if 'note' == number[:4].lower():
+                        continue
+
                     values = number.strip().split('..')
                     for value in range(int(values[0]), int(values[1]) + 1):
                         assert 1 <= value <= 16, 'Invalid attribute number: {}'.format(value)

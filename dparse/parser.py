@@ -62,8 +62,8 @@ class Main(object):
         return Document(self.args.ITU)
 
     def start(self):
-        print("Loading ITU Document '{}' and parsed data file '{}'".
-              format(self.args.ITU, self.args.input))
+        print("Loading ITU Document '{}' and parsed data file '{}'",
+              self.args.ITU, self.args.input)
 
         document = self.load_itu_document()
         self.sections = SectionList()
@@ -79,9 +79,9 @@ class Main(object):
         self.class_ids = ClassIdList.parse_sections(self.sections,
                                                     self.args.classes)
 
-        print('Found {} ME Class ID entries. {} have sections associated to them'.
-              format(len(self.class_ids), len([c for c in self.class_ids.values()
-                                               if c.section is not None])))
+        print('Found {} ME Class ID entries. {} have sections associated to them',
+              len(self.class_ids), len([c for c in self.class_ids.values()
+                                        if c.section is not None]))
 
         print('Managed Entities without Sections')
         for c in [c for c in self.class_ids.values() if c.section is None]:
@@ -98,6 +98,19 @@ class Main(object):
                                                        c.name,
                                                        camelcase(c.name)))
             c.deep_parse(self.paragraphs)
+
+        # Run some sanity checks
+        print('\n\n\nValidating ME Class Information:\n')
+        for c in self.class_ids.values():
+            print('  Class ID: {} - {}', c.cid, c.name)
+            if len(c.attributes == 0):
+                print('    NO ATTRIBUTES')
+
+            for attr in c.attributes:
+                if attr.access is None or len(attr.access) == 0:
+                    print('    NO ACCESS INFORMATION')
+                # if attr.size is None:
+                #     print('    NO SIZE INFORMATION')
 
 
 if __name__ == '__main__':

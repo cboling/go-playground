@@ -18,6 +18,7 @@ import re
 from enum import IntEnum
 from text import *
 from size import AttributeSize
+from tables import Table
 
 
 class AttributeAccess(IntEnum):
@@ -81,6 +82,7 @@ class Attribute(object):
         self.avc = False         # If true, an AVC notification can occur for the attribute
         self.tca = False         # If true, a threshold crossing alert alarm notification
                                  # can occur for the attribute
+        self.table = None        # (dict) Table information related to attribute
         # TODO: Constraints?
 
     def __str__(self):
@@ -114,41 +116,47 @@ class Attribute(object):
 
     def parse_attribute_settings_from_text(self, content, paragraph):
         # Any content?
-        text = ascii_only(paragraph.text).strip()
-        if len(text) == 0:
-            return
 
-        self.description.append(content)
+        if isinstance(content, int):
+            text = ascii_only(paragraph.text).strip()
+            if len(text) == 0:
+                return
 
-        # Check for access, mandatory/optional, and size keywords.  These are in side
-        # one or more () groups
-        paren_items = re.findall('\(([^)]+)*', text)
+            self.description.append(content)
 
-        for item in paren_items:
-            # Mandatory/optional is the easiest
-            if item.lower() == 'mandatory':
-                assert self.optional is None, 'Optional flag already decoded'
-                self.optional = False
-                continue
+            # Check for access, mandatory/optional, and size keywords.  These are in side
+            # one or more () groups
+            paren_items = re.findall('\(([^)]+)*', text)
 
-            elif item.lower() == 'optional':
-                assert self.optional is None, 'Optional flag already decoded'
-                self.optional = True
-                continue
+            for item in paren_items:
+                # Mandatory/optional is the easiest
+                if item.lower() == 'mandatory':
+                    assert self.optional is None, 'Optional flag already decoded'
+                    self.optional = False
+                    continue
 
-            # Try to see if the access for the attribute is this item
-            access_item = item.replace('-', '').strip()
-            access_list = access_item.lower().split(',')
-            if all(i in AttributeAccess.keywords() for i in access_list):
-                assert self.access is None, 'Accessibility has already be decoded'
-                self.access = AttributeAccess.keywords_to_access_set(access_list)
-                continue
+                elif item.lower() == 'optional':
+                    assert self.optional is None, 'Optional flag already decoded'
+                    self.optional = True
+                    continue
 
-            # Finally, is a size thing
-            size = AttributeSize.create_from_keywords(item)
-            if size is not None:
-                assert self.size is None, 'Size has already been decoded'
-                self.size = size
+                # Try to see if the access for the attribute is this item
+                access_item = item.replace('-', '').strip()
+                access_list = access_item.lower().split(',')
+                if all(i in AttributeAccess.keywords() for i in access_list):
+                    assert self.access is None, 'Accessibility has already be decoded'
+                    self.access = AttributeAccess.keywords_to_access_set(access_list)
+                    continue
+
+                # Finally, is a size thing
+                size = AttributeSize.create_from_keywords(item)
+                if size is not None:
+                    assert self.size is None, 'Size has already been decoded'
+                    self.size = size
+
+        elif isinstance(content, Table):
+            assert self.table is None, 'Attribute already has a table'
+            self.table = content.rows
 
 # TODO: Still need to test/decode AVC flag
 # TODO: Still need to test/decode TCA flag

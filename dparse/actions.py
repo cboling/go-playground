@@ -100,6 +100,7 @@ class Actions(IntEnum):
                 actions = None
             else:
                 # TODO: Change next to a return None after debugging all actions in doc
-                assert all(a is not None for a in actions), 'Partial decode: {}'.format(text)
+                assert all(a is not None for a in actions), \
+                    'Partial decode: {}'.format(text)
 
         return actions

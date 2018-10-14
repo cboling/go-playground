@@ -73,7 +73,9 @@ def description_parser(content, paragraphs):
         elif is_attributes_header(paragraph):
             return 'attribute', None
 
-        elif is_description_text(paragraph):
+        elif is_description_text(paragraph) or \
+                is_ignored_heading(paragraph) or \
+                is_enum_style(paragraph.style):
             return 'normal', ascii_only(paragraph.text)
     else:
         # TODO: Implement if needed, otherwise remove and fall through
@@ -132,14 +134,15 @@ def attributes_parser(content, paragraphs):
         elif is_attribute_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
 
-        elif is_normal_style(paragraph.style):
+        elif is_normal_style(paragraph.style) or \
+                is_figure_style(paragraph.style) or \
+                is_figure_title_style(paragraph.style):
             # Before start of some attribute groups, some descriptive
             # text is provided. Ignore that for now.
             return 'normal', None
 
-    else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+    elif isinstance(content, Table):
+        return 'normal', None
 
     return 'failure'
 
@@ -165,6 +168,12 @@ def actions_parser(content, paragraphs):
 
         elif is_actions_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
+
+        elif is_normal_style(paragraph.style):
+            # Before start of some actions, some descriptive
+            # text may be provided. Ignore that for now.
+            return 'normal', None
+
     else:
         # TODO: Implement if needed, otherwise remove and fall through
         raise NotImplementedError('Table support')
@@ -245,6 +254,11 @@ def alarms_parser(content, paragraphs):
         elif is_tests_table(content):
             return 'test', None
 
+        elif not is_alarms_table(content):
+            # Some MEs have additional descriptions and tables related
+            # to the alarms.
+            return 'normal', None
+
     return 'failure'
 
 
@@ -266,8 +280,14 @@ def avcs_parser(content, paragraphs):
         elif is_tests_header(paragraph):
             return 'test', ascii_only(paragraph.text)
 
-        elif is_avcs_text(paragraph):
+        elif is_avcs_text(paragraph) or \
+                is_normal_style(paragraph.style) or \
+                is_enum_style(paragraph.style) or \
+                is_ignored_heading(paragraph):
             return 'normal', ascii_only(paragraph.text)
+
+        elif is_eos_heading(paragraph):
+            return 'end_of_section', None
 
     elif isinstance(content, Table):
         if is_alarms_table(content):
@@ -308,4 +328,8 @@ def tests_parser(content, paragraphs):
             return 'alarm', None
 
     return 'failure'
+
+
+def eos_parser(_content, _paragraphs):
+    return 'end_of_section', None
 

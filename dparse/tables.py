@@ -194,9 +194,9 @@ class Table(object):
             raise
 
     def dump(self, prefix="  "):
-        print('{}Doc Tbl #:   {}'.format(prefix, self.doc_table_number))
-        print('{}Full Title:  {}'.format(prefix, self.full_title))
-        print('{}Short Title: {}'.format(prefix, self.short_title))
-        print('{}Headings:    {}'.format(prefix, self.heading))
-        print('{}# Rows:      {}'.format(prefix, len(self.rows)))
-        print('{}# Cols:      {}'.format(prefix, self.num_columns))
+        print('{}Doc Tbl #:   {}', prefix, self.doc_table_number)
+        print('{}Full Title:  {}', prefix, self.full_title)
+        print('{}Short Title: {}', prefix, self.short_title)
+        print('{}Headings:    {}', prefix, self.heading)
+        print('{}# Rows:      {}', prefix, len(self.rows))
+        print('{}# Cols:      {}', prefix, self.num_columns)

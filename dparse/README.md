@@ -80,6 +80,9 @@ The following items need to be done before this project can be demonstrated.
  
  - Provide base OMCI encode/decode frame source code to use the code generated ME source
    files. (Target language: golang)
+   
+ - The 'Software Image' ME provides an extra set of attributes & actions. This needs to
+   be compensated for.
 
 
 ## Future Work
