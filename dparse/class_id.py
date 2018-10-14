@@ -1,4 +1,5 @@
-#
+#!/usr/bin/env python
+# #
 # Copyright (c) 2018 - present.  Boling Consulting Solutions (bcsw.net)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,38 @@ from section import SectionHeading
 from tables import Table
 from transitions import Machine
 from contents import *
+from attributes import AttributeList, Attribute
+from enum import IntEnum
+
+
+class EntityOperations(IntEnum):
+    # TODO: Code generate from Table 11.2.2-1 - OMCI message types
+    # keep these numbers match msg_type field per OMCI spec
+    Create = 4
+    CreateComplete = 5
+    Delete = 6
+    Set = 8
+    Get = 9
+    GetComplete = 10
+    GetAllAlarms = 11
+    GetAllAlarmsNext = 12
+    MibUpload = 13
+    MibUploadNext = 14
+    MibReset = 15
+    AlarmNotification = 16
+    AttributeValueChange = 17
+    Test = 18
+    StartSoftwareDownload = 19
+    DownloadSection = 20
+    EndSoftwareDownload = 21
+    ActivateSoftware = 22
+    CommitSoftware = 23
+    SynchronizeTime = 24
+    Reboot = 25
+    GetNext = 26
+    TestResult = 27
+    GetCurrentData = 28
+    SetTable = 29  # Defined in Extended Message Set Only
 
 
 class ClassIdList(object):
@@ -92,7 +125,7 @@ class ClassIdList(object):
 class ClassId(object):
     """ Managed Entity Class Information """
     STATES = ['initial', 'description', 'relationships', 'attributes',
-              'operations', 'optionals', 'notificatons', 'alarms', 'avcs',
+              'operations', 'notificatons', 'alarms', 'avcs',
                'tests', 'complete', 'failure']
 
     TRANSITIONS = [
@@ -114,20 +147,10 @@ class ClassId(object):
         # While in 'attributes' state
         {'trigger': 'normal', 'source': 'attributes', 'dest': 'attributes'},
         {'trigger': 'operation', 'source': 'attributes', 'dest': 'operations'},
-        # {'trigger': '', 'source': 'attributes', 'dest': ''},
-        # {'trigger': '', 'source': 'attributes', 'dest': ''},
 
         # While in 'operations' state
         {'trigger': 'normal', 'source': 'operations', 'dest': 'operations'},
-        {'trigger': 'optional', 'source': 'operations', 'dest': 'optionals'},
         {'trigger': 'notification', 'source': 'operations', 'dest': 'notifications'},
-        # {'trigger': '', 'source': 'operations', 'dest': ''},
-        # {'trigger': '', 'source': 'operations', 'dest': ''},
-
-        # While in 'optionals' state
-        {'trigger': 'normal', 'source': 'optionals', 'dest': 'optionals'},
-        {'trigger': 'notification', 'source': 'optionals', 'dest': 'notifications'},
-        # {'trigger': '', 'source': 'optionals', 'dest': ''},
 
         # While in 'notifications' state
         {'trigger': 'normal', 'source': 'notifications', 'dest': 'notifications'},
@@ -139,19 +162,16 @@ class ClassId(object):
         {'trigger': 'normal', 'source': 'alarms', 'dest': 'alarms'},
         {'trigger': 'avc', 'source': 'alarms', 'dest': 'avcs'},
         {'trigger': 'test', 'source': 'alarms', 'dest': 'tests'},
-        # {'trigger': '', 'source': 'alarms', 'dest': ''},
 
         # While in 'avc' state
         {'trigger': 'normal', 'source': 'avcs', 'dest': 'source'},
         {'trigger': 'alarm', 'source': 'avcs', 'dest': 'alarms'},
         {'trigger': 'test', 'source': 'avcs', 'dest': 'tests'},
-        # {'trigger': '', 'source': 'avcs', 'dest': ''},
 
         # While in 'tests' state
         {'trigger': 'normal', 'source': 'tests', 'dest': 'tests'},
         {'trigger': 'alarm', 'source': 'tests', 'dest': 'alarms'},
         {'trigger': 'avc', 'source': 'tests', 'dest': 'avcs'},
-        # {'trigger': '', 'source': 'tests', 'dest': ''},
 
         # Do wildcard 'complete' trigger last so it covers all previous states
         {'trigger': 'complete', 'source': '*', 'dest': 'complete'},
@@ -172,17 +192,17 @@ class ClassId(object):
                                name='{}-{}'.format(self.name, self.cid))
 
         # Following hold lists of paragraph numbers
-        self._description = list()        # Description (paragraph numbers)
-        self._relationships = list()      # Relationships paragraph # (if any)
+        self._description = list()         # Description (paragraph numbers)
+        self._relationships = list()       # Relationships paragraph # (if any)
 
         # Following hold lists of associated objects
-        self.attributes = list()          # Ordered list of attributes
-        self.operations = set()           # Mandatory operations/message-types
-        self.optional_operations = set()  # Allowed operations/message-types
-        self.alarms = None                # Alarm list (if any)
-        self.avcs = None                  # Attribute Value Change list (if any)
-        self.test_results = None          # Test Results (if any)
-        self.hidden = False               # Not reported or ignore in MIB upload
+        self.attributes = AttributeList()  # Ordered list of attributes
+        self.operations = set()            # Mandatory operations/message-types
+        self.optional_operations = set()   # Allowed operations/message-types
+        self.alarms = None                 # Alarm list (if any)
+        self.avcs = None                   # Attribute Value Change list (if any)
+        self.test_results = None           # Test Results (if any)
+        self.hidden = False                # Not reported or ignore in MIB upload
 
     def __str__(self):
         return 'ClassId: {}: {}, State: {}'.format(self.cid, self.name, self.state)
@@ -244,39 +264,139 @@ class ClassId(object):
     def on_enter_attributes(self, text, content):
         self.parser = attributes_parser
         if text is not None and len(text):
-            paragraph = self._paragraphs[content]
-            pass
-            pass
-            pass
+            if isinstance(content, int):
+                attribute = Attribute.create_from_paragraph(content,
+                                                            self._paragraphs[content])
+                if attribute is not None:
+                    self.attributes.add(attribute)
+                else:
+                    last = self.attributes[-1:] if len(self.attributes) else None
+                    if last is None:
+                        raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                                       format(self))
+
+                    last.description.append(content)
+            else:
+                raise NotImplementedError('TODO: Support Tables')
 
     def on_enter_operations(self, text, content):
         self.parser = operations_parser
-        pass
-
-    def on_enter_optionals(self, text, content):
-        self.parser = optionals_parser
-        pass
+        if text is not None and len(text):
+            if isinstance(content, int):
+                pass
+                # attribute = Attribute.create_from_paragraph(content,
+                #                                             self._paragraphs[content])
+                # if attribute is not None:
+                #     self.attributes.add(attribute)
+                # else:
+                #     last = self.attributes[-1:] if len(self.attributes) else None
+                #     if last is None:
+                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                #                        format(self))
+                #
+                #     last.description.append(content)
+            else:
+                raise NotImplementedError('TODO: Support Tables')
 
     def on_enter_notifications(self, text, content):
         self.parser = notifications_parser
-        pass
+        # TODO: Need to be smarter here.  Will get tables and Test Results are formatted
+        #       much like attributes sometimes.
+        if text is not None and len(text):
+            if isinstance(content, int):
+                pass
+                # attribute = Attribute.create_from_paragraph(content,
+                #                                             self._paragraphs[content])
+                # if attribute is not None:
+                #     self.attributes.add(attribute)
+                # else:
+                #     last = self.attributes[-1:] if len(self.attributes) else None
+                #     if last is None:
+                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                #                        format(self))
+                #
+                #     last.description.append(content)
+            else:
+                raise NotImplementedError('TODO: Support Tables')
 
     def on_enter_alarms(self, text, content):
         self.parser = alarms_parser
-        pass
+        if text is not None and len(text):
+            if isinstance(content, int):
+                pass
+                # attribute = Attribute.create_from_paragraph(content,
+                #                                             self._paragraphs[content])
+                # if attribute is not None:
+                #     self.attributes.add(attribute)
+                # else:
+                #     last = self.attributes[-1:] if len(self.attributes) else None
+                #     if last is None:
+                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                #                        format(self))
+                #
+                #     last.description.append(content)
+            else:
+                raise NotImplementedError('TODO: Support Tables')
 
-    def on_enter_avcs(self, text=None, content=None):
+    def on_enter_avcs(self, text, content):
         self.parser = avcs_parser
-        pass
+        if text is not None and len(text):
+            if isinstance(content, int):
+                pass
+                # attribute = Attribute.create_from_paragraph(content,
+                #                                             self._paragraphs[content])
+                # if attribute is not None:
+                #     self.attributes.add(attribute)
+                # else:
+                #     last = self.attributes[-1:] if len(self.attributes) else None
+                #     if last is None:
+                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                #                        format(self))
+                #
+                #     last.description.append(content)
+            else:
+                raise NotImplementedError('TODO: Support Tables')
 
-    def on_enter_tests(self, text=None, content=None):
+    def on_enter_tests(self, text, content):
         self.parser = tests_parser
-        pass
+        if text is not None and len(text):
+            if isinstance(content, int):
+                pass
+                # attribute = Attribute.create_from_paragraph(content,
+                #                                             self._paragraphs[content])
+                # if attribute is not None:
+                #     self.attributes.add(attribute)
+                # else:
+                #     last = self.attributes[-1:] if len(self.attributes) else None
+                #     if last is None:
+                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                #                        format(self))
+                #
+                #     last.description.append(content)
+            else:
+                raise NotImplementedError('TODO: Support Tables')
 
-    def on_enter_complete(self, text=None, content=None):
+    def on_enter_complete(self, _text, _content):
         self.parser = None
-        pass
 
-    def on_enter_failure(self, text=None, content=None):
+    def on_enter_failure(self, _text, _content):
         self.parser = None
-        pass
+
+
+if __name__ == '__main__':
+    """
+    Run this as a program and it will produce a PNG image of the ClassID
+    state machine to the current working directory with a name of
+    
+                ClassID-StageDiagram.png
+    """
+    from transitions.extensions import GraphMachine as Machine
+
+    c = ClassId()
+    machine = c.machine
+
+    # in cases where auto transitions should be visible
+    # Machine(model=m, show_auto_transitions=True, ...)
+
+    # draw the whole graph ...
+    machine.get_graph().draw('ClassID-StageDiagram.png', prog='dot')

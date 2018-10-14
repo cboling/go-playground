@@ -74,6 +74,9 @@ def description_parser(content, paragraphs):
 
         elif is_description_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
 
     return 'failure'
 
@@ -99,6 +102,9 @@ def relationships_parser(content, paragraphs):
 
         elif is_relationships_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
 
     return 'failure'
 
@@ -108,7 +114,7 @@ def attributes_parser(content, paragraphs):
     Parse content for this state of an ME
 
     Possible transitions include:
-        - Operation     - if 'Operations' paragraph header found
+        - Operations    - if 'Operations' paragraph header found
         - Attributes    - if 'normal' text style
 
     :param content: (int) or (Table)
@@ -124,6 +130,9 @@ def attributes_parser(content, paragraphs):
 
         elif is_attribute_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
 
     return 'failure'
 
@@ -132,28 +141,9 @@ def operations_parser(content, paragraphs):
     """
     Parse content for this state of an ME
 
-    :param content: (int) or (Table)
-    :param paragraphs: (list) Docx Paragraphs
-
-    :return: (str, str) Next state, Associated text (if any)
-    """
-    if isinstance(content, int):
-        paragraph = paragraphs[content]
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-    return 'failure'
-
-
-def optionals_parser(content, paragraphs):
-    """
-    Parse content for this state of an ME
+    Possible transitions include:
+        - Notifications - if 'Notifications paragraph header found
+        - Operation     - if 'normal' text style
 
     :param content: (int) or (Table)
     :param paragraphs: (list) Docx Paragraphs
@@ -162,21 +152,30 @@ def optionals_parser(content, paragraphs):
     """
     if isinstance(content, int):
         paragraph = paragraphs[content]
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
+
+        if is_notifications_header(paragraph):
+            return 'notification', None
+
+        elif is_operations_text(paragraph):
+            return 'normal', ascii_only(paragraph.text)
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
+
     return 'failure'
 
 
 def notifications_parser(content, paragraphs):
     """
-    Parse content for this state of an ME
+    Parse content for this state of an ME.  Unlike other
+    ME sections, this will have either the phrase 'None'
+    or it may have alarm, avc, or test results subsections.
+
+    Possible transitions include:
+        - Alarms        - if 'Alarms paragraph header found
+        - AVCs          - if 'Attribute Value Changes paragraph header found
+        - Tests         - if 'Test Results paragraph header found
+        - Notifications - if 'normal' text style
 
     :param content: (int) or (Table)
     :param paragraphs: (list) Docx Paragraphs
@@ -185,15 +184,23 @@ def notifications_parser(content, paragraphs):
     """
     if isinstance(content, int):
         paragraph = paragraphs[content]
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
+
+        if is_avcs_header(paragraph):
+            return 'avc', None
+
+        elif is_alarms_header(paragraph):
+            return 'alarm', ascii_only(paragraph.text)
+
+        elif is_tests_header(paragraph):
+            return 'test', ascii_only(paragraph.text)
+
+        elif is_notifications_text(paragraph):
+            return 'normal', ascii_only(paragraph.text)
+
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
+
     return 'failure'
 
 
@@ -208,15 +215,20 @@ def alarms_parser(content, paragraphs):
     """
     if isinstance(content, int):
         paragraph = paragraphs[content]
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
+
+        if is_avcs_header(paragraph):
+            return 'avc', None
+
+        elif is_tests_header(paragraph):
+            return 'test', ascii_only(paragraph.text)
+
+        elif is_alarms_text(paragraph):
+            return 'normal', ascii_only(paragraph.text)
+
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
+
     return 'failure'
 
 
@@ -231,15 +243,19 @@ def avcs_parser(content, paragraphs):
     """
     if isinstance(content, int):
         paragraph = paragraphs[content]
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
+
+        if is_alarms_header(paragraph):
+            return 'alarm', ascii_only(paragraph.text)
+
+        elif is_tests_header(paragraph):
+            return 'test', ascii_only(paragraph.text)
+
+        elif is_avcs_text(paragraph):
+            return 'normal', ascii_only(paragraph.text)
+
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
     return 'failure'
 
 
@@ -254,14 +270,19 @@ def tests_parser(content, paragraphs):
     """
     if isinstance(content, int):
         paragraph = paragraphs[content]
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
-        #
+
+        if is_avcs_header(paragraph):
+            return 'avc', None
+
+        elif is_alarms_header(paragraph):
+            return 'alarm', ascii_only(paragraph.text)
+
+        elif is_tests_text(paragraph):
+            return 'normal', ascii_only(paragraph.text)
+
+    else:
+        # TODO: Implement if needed, otherwise remove and fall through
+        raise NotImplementedError('Table support')
+
     return 'failure'
 
