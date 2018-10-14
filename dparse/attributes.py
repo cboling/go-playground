@@ -91,9 +91,8 @@ class Attribute(object):
     @staticmethod
     def create_from_paragraph(content, paragraph):
         """
-        Create an attribute from passed in paragraph information if it refers
-        to a new attribute.  If not, this paragraph is for the previously created
-        attribute.
+        Create an attribute from passed in paragraph information if it refers to a
+        new attribute.  If not, this paragraph is for the previously created attribute.
 
         :param content: (int) Document paragraph number
         :param paragraph: (Paragraph) Docx Paragraph
@@ -106,41 +105,50 @@ class Attribute(object):
         if paragraph.runs[0].bold:
             # New attribute
             attribute = Attribute()
-            attribute.name = ascii_only(' '.join(x.text for x in paragraph.runs if x.bold))
+            # TODO: Scrub things in '()' from name of attribute
+            attribute.name = ascii_only(' '.join(x.text for x in paragraph.runs
+                                                 if x.bold)).title()
             attribute.description.append(content)
+
+        return attribute
+
+    def parse_attribute_settings_from_text(self, content, paragraph):
+        # Any content?
+        text = ascii_only(paragraph.text).strip()
+        if len(text) == 0:
+            return
+
+        self.description.append(content)
 
         # Check for access, mandatory/optional, and size keywords.  These are in side
         # one or more () groups
-        text = ascii_only(paragraph.text)
         paren_items = re.findall('\(([^)]+)*', text)
 
         for item in paren_items:
             # Mandatory/optional is the easiest
             if item.lower() == 'mandatory':
-                assert attribute.optional is None, 'Optional flag already decoded'
-                attribute.optional = False
+                assert self.optional is None, 'Optional flag already decoded'
+                self.optional = False
                 continue
 
             elif item.lower() == 'optional':
-                assert attribute.optional is None, 'Optional flag already decoded'
-                attribute.optional = True
+                assert self.optional is None, 'Optional flag already decoded'
+                self.optional = True
                 continue
 
             # Try to see if the access for the attribute is this item
-            access_item = item.replace('-', '')
-            access_list = ascii_only(access_item).lower().split(',')
+            access_item = item.replace('-', '').strip()
+            access_list = access_item.lower().split(',')
             if all(i in AttributeAccess.keywords() for i in access_list):
-                assert attribute.access is None, 'Accessibility has already be decoded'
-                attribute.access = AttributeAccess.keywords_to_access_set(access_list)
+                assert self.access is None, 'Accessibility has already be decoded'
+                self.access = AttributeAccess.keywords_to_access_set(access_list)
                 continue
 
             # Finally, is a size thing
             size = AttributeSize.create_from_keywords(item)
             if size is not None:
-                assert attribute.size is None, 'Size has already been decoded'
-                attribute.size = size
-
-        return attribute
+                assert self.size is None, 'Size has already been decoded'
+                self.size = size
 
 # TODO: Still need to test/decode AVC flag
 # TODO: Still need to test/decode TCA flag

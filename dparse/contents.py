@@ -15,6 +15,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 from text import *
+from tables import Table
 
 
 def initial_parser(content, paragraphs):
@@ -114,7 +115,7 @@ def attributes_parser(content, paragraphs):
     Parse content for this state of an ME
 
     Possible transitions include:
-        - Operations    - if 'Operations' paragraph header found
+        - Actions    - if 'Actions' paragraph header found
         - Attributes    - if 'normal' text style
 
     :param content: (int) or (Table)
@@ -125,11 +126,17 @@ def attributes_parser(content, paragraphs):
     if isinstance(content, int):
         paragraph = paragraphs[content]
 
-        if is_operations_header(paragraph):
-            return 'operation', None
+        if is_actions_header(paragraph):
+            return 'action', None
 
         elif is_attribute_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
+
+        elif is_normal_style(paragraph.style):
+            # Before start of some attribute groups, some descriptive
+            # text is provided. Ignore that for now.
+            return 'normal', None
+
     else:
         # TODO: Implement if needed, otherwise remove and fall through
         raise NotImplementedError('Table support')
@@ -137,13 +144,13 @@ def attributes_parser(content, paragraphs):
     return 'failure'
 
 
-def operations_parser(content, paragraphs):
+def actions_parser(content, paragraphs):
     """
     Parse content for this state of an ME
 
     Possible transitions include:
         - Notifications - if 'Notifications paragraph header found
-        - Operation     - if 'normal' text style
+        - Action        - if 'normal' text style
 
     :param content: (int) or (Table)
     :param paragraphs: (list) Docx Paragraphs
@@ -156,7 +163,7 @@ def operations_parser(content, paragraphs):
         if is_notifications_header(paragraph):
             return 'notification', None
 
-        elif is_operations_text(paragraph):
+        elif is_actions_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
     else:
         # TODO: Implement if needed, otherwise remove and fall through
@@ -197,9 +204,15 @@ def notifications_parser(content, paragraphs):
         elif is_notifications_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
 
-    else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+    elif isinstance(content, Table):
+        if is_avcs_table(content):
+            return 'avc', None
+
+        elif is_alarms_table(content):
+            return 'alarm', None
+
+        elif is_tests_table(content):
+            return 'test', None
 
     return 'failure'
 
@@ -225,9 +238,12 @@ def alarms_parser(content, paragraphs):
         elif is_alarms_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
 
-    else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+    elif isinstance(content, Table):
+        if is_avcs_table(content):
+            return 'avc', None
+
+        elif is_tests_table(content):
+            return 'test', None
 
     return 'failure'
 
@@ -253,9 +269,13 @@ def avcs_parser(content, paragraphs):
         elif is_avcs_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
 
-    else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+    elif isinstance(content, Table):
+        if is_alarms_table(content):
+            return 'alarm', None
+
+        elif is_tests_table(content):
+            return 'test', None
+
     return 'failure'
 
 
@@ -280,9 +300,12 @@ def tests_parser(content, paragraphs):
         elif is_tests_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
 
-    else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+    elif isinstance(content, Table):
+        if is_avcs_table(content):
+            return 'avc', None
+
+        elif is_alarms_table(content):
+            return 'alarm', None
 
     return 'failure'
 

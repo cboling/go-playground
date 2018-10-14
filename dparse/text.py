@@ -85,7 +85,7 @@ def is_attributes_header(paragraph):
     return text == 'Attributes' and is_heading_style(paragraph.style)
 
 
-def is_operations_header(paragraph):
+def is_actions_header(paragraph):
     """ True if this paragraph is a heading for the Actions/Message-Types section """
     text = ascii_only(paragraph.text).strip()
     return text == 'Actions' and is_heading_style(paragraph.style)
@@ -141,11 +141,12 @@ def is_relationships_style(style):
 
 def is_attribute_style(style):
     """ True if this is a style used for Attributes paragraph text """
-    return 'Attribute' in style.name[:len('Attribute')]
+    return 'Attribute' in style.name[:len('Attribute')] \
+           or 'Note' in style.name[:len('Note')]
 
 
-def is_operations_style(style):
-    """ True if this is a style used for Operations paragraph text """
+def is_actions_style(style):
+    """ True if this is a style used for Actions paragraph text """
     return 'Attribute' in style.name[:len('Attribute')]
 
 
@@ -187,27 +188,48 @@ def is_attribute_text(paragraph):
     return not is_attributes_header(paragraph) and is_attribute_style(paragraph.style)
 
 
-def is_operations_text(paragraph):
-    """ True if this is a style used for Operations/msg-types paragraph text """
-    return not is_operations_header(paragraph) and is_operations_style(paragraph.style)
+def is_actions_text(paragraph):
+    """ True if this is a style used for Actions/msg-types paragraph text """
+    return not is_actions_header(paragraph) and is_actions_style(paragraph.style)
 
 
 def is_notifications_text(paragraph):
-    """ True if this is a style used for Notifcations paragraph text """
+    """ True if this is a style used for Notifications paragraph text """
     return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
 
 
 def is_avcs_text(paragraph):
-    """ True if this is a style used for Notifcations paragraph text """
+    """ True if this is a style used for Attribute Value Change paragraph text """
     return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
 
 
 def is_alarms_text(paragraph):
-    """ True if this is a style used for Notifcations paragraph text """
+    """ True if this is a style used for Alarms paragraph text """
     return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
 
 
 def is_tests_text(paragraph):
-    """ True if this is a style used for Notifcations paragraph text """
+    """ True if this is a style used for Notifications paragraph text """
     return not is_notifications_header(paragraph) and is_notifications_style(paragraph.style)
 
+
+########################################################################
+# Table support
+
+def is_avcs_table(table):
+    """ True if table of AVC notifications """
+    phrase = 'attribute value change'
+    return phrase == table.short_title[:len(phrase)].lower()
+
+
+def is_alarms_table(table):
+    """ True if table of alarms notifications """
+    phrase = 'alarm'
+    return phrase == table.short_title[:len(phrase)].lower()
+
+
+def is_tests_table(table):
+    """ True if table of Test Results notifications """
+    # TODO: Dig into best way to automate test results decode!!!
+    phrase = 'TODO: Test results not yet supported'
+    return phrase == table.short_title[:len(phrase)].lower()

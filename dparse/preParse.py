@@ -22,6 +22,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 import sys
+import argparse
 from docx import Document
 from docx.document import Document as _Document
 from docx.oxml.text.paragraph import CT_P
@@ -31,14 +32,22 @@ from docx.table import Table as DocxTable
 from docx.text.paragraph import Paragraph
 
 from section import SectionHeading, SectionList
-from tables import TableList, Table
+from tables import Table
 
 
 def parse_args():
-    return {
-        'input': 'T-REC-G.988-201711-I!!MSW-E.docx',
-        'output': 'G.988.PreCompiled.json',
-    }
+    parser = argparse.ArgumentParser(description='G.988 Pre-process Parser')
+
+    parser.add_argument('--input', '-i', action='store',
+                        default='ITU-T G.988-201711.docx',
+                        help='Path to ITU G.988 specification document')
+
+    parser.add_argument('--output', '-o', action='store',
+                        default='G.988.PreCompiiled.json',
+                        help='Output filename, default: G.988.PreCompiiled.json')
+
+    args = parser.parse_args()
+    return args.input, args.output
 
 
 class Main(object):
@@ -46,9 +55,9 @@ class Main(object):
     def __init__(self):
         self.args = parse_args()
 
-    def start(self):
+    def start(self, source_file, output):
         sections = SectionList()
-        document = Document(self.args['input'])
+        document = Document(source_file)
 
         paragraphs = document.paragraphs
         doc_sections = document.sections
@@ -60,8 +69,10 @@ class Main(object):
         print('Number of styles    : {}, {} are built-in styles'.format(len(styles),
                                                                         len([x for x in styles if x.builtin])))
         print('Number of tables    : {}'.format(len(tables)))
-        print('Parsing paragraphs & tables to extract high level info. This will take three+ minutes')
-
+        print('Parsing paragraphs & tables to extract high level information.')
+        print('This will take a little while (4-5 minutes')
+        import datetime
+        print(datetime.datetime.now())
         pnum = 0
         tnum = 0
         current_section = None
@@ -101,8 +112,9 @@ class Main(object):
 
         # Save to file
         print('')
-        print('Saving Section parsing information to {}'.format(self.args['output']))
-        sections.save(self.args['output'])
+        print(datetime.datetime.now())
+        print('Saving Section parsing information to {}'.format(output))
+        sections.save(output)
 
         print('Section pre-parsing are complete')
 
@@ -110,7 +122,7 @@ class Main(object):
         sections.dump()
 
         # Restore and verify
-        sections.load(self.args['output'])
+        sections.load(output)
 
         for section in sections:
             print('  Section: {} -> {}'.format(section, section.section_points))
@@ -140,7 +152,8 @@ class Main(object):
 
 if __name__ == '__main__':
     try:
-        Main().start()
+        inputfile, output = parse_args()
+        Main().start(inputfile, output)
 
     except Exception as _e:
         raise

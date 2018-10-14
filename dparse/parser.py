@@ -15,30 +15,38 @@
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
-
+import argparse
 from docx import Document
 
-from section import SectionHeading, SectionList
-from class_id import ClassIdList, ClassId
-from tables import TableList, Table
-from text import ascii_only, camelcase
+from section import SectionList
+from class_id import ClassIdList
+from text import camelcase
 
 
-MESectionStartLabel = "9.1.1"   # First to read
-MESectionEndLabel = "10"        # MEs not found after here
 MEClassSection = "11.2.4"       # Class IDs
 
 
 def parse_args():
-    return {
-        'itu': 'T-REC-G.988-201711-I!!MSW-E.docx',
-        'sections': 'G.988.Sections.json',
-        'preparsed': 'G.988.PreCompiled.json',
-        'output': 'G.988.Parsed.json',
-        'me-start': MESectionStartLabel,
-        'me-end': MESectionEndLabel,
-        'me-class-section': MEClassSection,
-    }
+    parser = argparse.ArgumentParser(description='G.988 Final Parser')
+
+    parser.add_argument('--ITU', '-I', action='store',
+                        default='ITU-T G.988-201711.docx',
+                        help='Path to ITU G.988 specification document')
+
+    parser.add_argument('--input', '-i', action='store',
+                        default='G.988.PreCompiled.json',
+                        help='Path to pre-parsed G.988 data, default: G.988.PreCompiled.json')
+
+    parser.add_argument('--output', '-o', action='store',
+                        default='G.988.Parsed.json',
+                        help='Output filename, default: G.988.Parsed.json')
+
+    parser.add_argument('--classes', '-c', action='store',
+                        default='11.2.4',
+                        help='Document section number with ME Class IDs, default: 11.2.4')
+
+    args = parser.parse_args()
+    return args
 
 
 class Main(object):
@@ -51,15 +59,15 @@ class Main(object):
         self.body = None
 
     def load_itu_document(self):
-        return Document(self.args['itu'])
+        return Document(self.args.ITU)
 
     def start(self):
-        print("Loading ITU Document '{}' and parsed Section Header file '{}'".
-              format(self.args['itu'], self.args['sections']))
+        print("Loading ITU Document '{}' and parsed data file '{}'".
+              format(self.args.ITU, self.args.input))
 
         document = self.load_itu_document()
         self.sections = SectionList()
-        self.sections.load(self.args['preparsed'])
+        self.sections.load(self.args.input)
 
         self.paragraphs = document.paragraphs
         # doc_sections = document.sections
@@ -69,7 +77,7 @@ class Main(object):
         print('Extracting ME Class ID values')
 
         self.class_ids = ClassIdList.parse_sections(self.sections,
-                                                    self.args['me-class-section'])
+                                                    self.args.classes)
 
         print('Found {} ME Class ID entries. {} have sections associated to them'.
               format(len(self.class_ids), len([c for c in self.class_ids.values()

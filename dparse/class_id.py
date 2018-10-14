@@ -15,44 +15,11 @@
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
-import re
-from text import ascii_only
-from section import SectionHeading
-from tables import Table
 from transitions import Machine
 from contents import *
 from attributes import AttributeList, Attribute
-from enum import IntEnum
-
-
-class EntityOperations(IntEnum):
-    # TODO: Code generate from Table 11.2.2-1 - OMCI message types
-    # keep these numbers match msg_type field per OMCI spec
-    Create = 4
-    CreateComplete = 5
-    Delete = 6
-    Set = 8
-    Get = 9
-    GetComplete = 10
-    GetAllAlarms = 11
-    GetAllAlarmsNext = 12
-    MibUpload = 13
-    MibUploadNext = 14
-    MibReset = 15
-    AlarmNotification = 16
-    AttributeValueChange = 17
-    Test = 18
-    StartSoftwareDownload = 19
-    DownloadSection = 20
-    EndSoftwareDownload = 21
-    ActivateSoftware = 22
-    CommitSoftware = 23
-    SynchronizeTime = 24
-    Reboot = 25
-    GetNext = 26
-    TestResult = 27
-    GetCurrentData = 28
-    SetTable = 29  # Defined in Extended Message Set Only
+from actions import Actions
+from avc import AVC
 
 
 class ClassIdList(object):
@@ -124,9 +91,8 @@ class ClassIdList(object):
 
 class ClassId(object):
     """ Managed Entity Class Information """
-    STATES = ['initial', 'description', 'relationships', 'attributes',
-              'operations', 'notificatons', 'alarms', 'avcs',
-               'tests', 'complete', 'failure']
+    STATES = ['initial', 'description', 'relationships', 'attributes', 'actions',
+              'notifications', 'alarms', 'avcs', 'tests', 'complete', 'failure']
 
     TRANSITIONS = [
         # While in initial 'basic' state
@@ -146,11 +112,11 @@ class ClassId(object):
 
         # While in 'attributes' state
         {'trigger': 'normal', 'source': 'attributes', 'dest': 'attributes'},
-        {'trigger': 'operation', 'source': 'attributes', 'dest': 'operations'},
+        {'trigger': 'action', 'source': 'attributes', 'dest': 'actions'},
 
-        # While in 'operations' state
-        {'trigger': 'normal', 'source': 'operations', 'dest': 'operations'},
-        {'trigger': 'notification', 'source': 'operations', 'dest': 'notifications'},
+        # While in 'actions' state
+        {'trigger': 'normal', 'source': 'actions', 'dest': 'actions'},
+        {'trigger': 'notification', 'source': 'actions', 'dest': 'notifications'},
 
         # While in 'notifications' state
         {'trigger': 'normal', 'source': 'notifications', 'dest': 'notifications'},
@@ -197,10 +163,10 @@ class ClassId(object):
 
         # Following hold lists of associated objects
         self.attributes = AttributeList()  # Ordered list of attributes
-        self.operations = set()            # Mandatory operations/message-types
-        self.optional_operations = set()   # Allowed operations/message-types
+        self.actions = set()               # Mandatory actions/message-types
+        self.optional_actions = set()      # Allowed actions/message-types
         self.alarms = None                 # Alarm list (if any)
-        self.avcs = None                   # Attribute Value Change list (if any)
+        self.avcs = None                   # Attribute Value Change (if any)
         self.test_results = None           # Test Results (if any)
         self.hidden = False                # Not reported or ignore in MIB upload
 
@@ -222,7 +188,7 @@ class ClassId(object):
                 elif isinstance(content, Table):
                     # Table object
                     # TODO: trigger = self.parser(content, paragraphs)
-                    trigger, text = None
+                    trigger, text = self.parser(content, None)
 
                 else:
                     raise NotImplementedError('Unknown content type: {}'.
@@ -231,7 +197,7 @@ class ClassId(object):
                 getattr(self, trigger)(text, content)
 
             except Exception as e:
-                self.failure()
+                self.failure(None, None)
                 print("FAILURE: Exiting deep parsing: '{}'".format(e.message))
                 break
 
@@ -263,38 +229,38 @@ class ClassId(object):
 
     def on_enter_attributes(self, text, content):
         self.parser = attributes_parser
-        if text is not None and len(text):
-            if isinstance(content, int):
+        if isinstance(content, int):
+            if text is not None and len(text):
                 attribute = Attribute.create_from_paragraph(content,
                                                             self._paragraphs[content])
                 if attribute is not None:
                     self.attributes.add(attribute)
-                else:
-                    last = self.attributes[-1:] if len(self.attributes) else None
-                    if last is None:
-                        raise KeyError('Unable to decode initial attribute: class_id: {}'.
-                                       format(self))
 
-                    last.description.append(content)
-            else:
-                raise NotImplementedError('TODO: Support Tables')
+                last = self.attributes[-1] if len(self.attributes) else None
+                if last is None:
+                    raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                                   format(self))
 
-    def on_enter_operations(self, text, content):
-        self.parser = operations_parser
+                last.parse_attribute_settings_from_text(content,
+                                                        self._paragraphs[content])
+        elif isinstance(content, Table):
+            last = self.attributes[-1] if len(self.attributes) else None
+            if last is None:
+                raise KeyError('Unable to decode initial attribute: class_id: {}'.
+                               format(self))
+
+            raise NotImplementedError('TODO: Support Tables')
+
+    def on_enter_actions(self, text, content):
+        self.parser = actions_parser
         if text is not None and len(text):
             if isinstance(content, int):
+                action = Actions.create_from_paragraph(self._paragraphs[content])
+
+                if action is not None:
+                    self.actions.update(action)
                 pass
-                # attribute = Attribute.create_from_paragraph(content,
-                #                                             self._paragraphs[content])
-                # if attribute is not None:
-                #     self.attributes.add(attribute)
-                # else:
-                #     last = self.attributes[-1:] if len(self.attributes) else None
-                #     if last is None:
-                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
-                #                        format(self))
-                #
-                #     last.description.append(content)
+
             else:
                 raise NotImplementedError('TODO: Support Tables')
 
@@ -302,27 +268,20 @@ class ClassId(object):
         self.parser = notifications_parser
         # TODO: Need to be smarter here.  Will get tables and Test Results are formatted
         #       much like attributes sometimes.
-        if text is not None and len(text):
-            if isinstance(content, int):
-                pass
-                # attribute = Attribute.create_from_paragraph(content,
-                #                                             self._paragraphs[content])
-                # if attribute is not None:
-                #     self.attributes.add(attribute)
-                # else:
-                #     last = self.attributes[-1:] if len(self.attributes) else None
-                #     if last is None:
-                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
-                #                        format(self))
-                #
-                #     last.description.append(content)
-            else:
+        if isinstance(content, int):
+            if text is not None and len(text):
+                # Typical to get 'None.' if no notifications supported
+                # TODO: Breakpoint if it is not 'None.' for debugging
+                if 'none' not in ascii_only(text).strip().lower():
+                    print('Found something. {}'.format(text))
+
+        elif isinstance(content, Table):
                 raise NotImplementedError('TODO: Support Tables')
 
     def on_enter_alarms(self, text, content):
         self.parser = alarms_parser
-        if text is not None and len(text):
-            if isinstance(content, int):
+        if isinstance(content, int):
+            if text is not None and len(text):
                 pass
                 # attribute = Attribute.create_from_paragraph(content,
                 #                                             self._paragraphs[content])
@@ -335,27 +294,20 @@ class ClassId(object):
                 #                        format(self))
                 #
                 #     last.description.append(content)
-            else:
-                raise NotImplementedError('TODO: Support Tables')
+        else:
+            raise NotImplementedError('TODO: Support Tables')
 
     def on_enter_avcs(self, text, content):
         self.parser = avcs_parser
-        if text is not None and len(text):
-            if isinstance(content, int):
+        if isinstance(content, int):
+            if text is not None and len(text):
                 pass
-                # attribute = Attribute.create_from_paragraph(content,
-                #                                             self._paragraphs[content])
-                # if attribute is not None:
-                #     self.attributes.add(attribute)
-                # else:
-                #     last = self.attributes[-1:] if len(self.attributes) else None
-                #     if last is None:
-                #         raise KeyError('Unable to decode initial attribute: class_id: {}'.
-                #                        format(self))
-                #
-                #     last.description.append(content)
-            else:
-                raise NotImplementedError('TODO: Support Tables')
+
+        elif isinstance(content, Table):
+            avc = AVC.create_from_table(content)
+            if avc is not None:
+                assert self.avcs is None, 'AVCs have already been decoded'
+                self.avcs = avc
 
     def on_enter_tests(self, text, content):
         self.parser = tests_parser

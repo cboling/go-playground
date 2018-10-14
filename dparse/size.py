@@ -16,7 +16,7 @@ from __future__ import (
 )
 import re
 from text import *
-from enum import IntEnum
+
 
 class AttributeSize(object):
     """ Object to help describe the size requirements of an attribute """
