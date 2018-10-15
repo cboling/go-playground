@@ -15,8 +15,13 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 import re
-import itertools
 from text import ascii_only
+try:
+    # Python 3
+    from itertools import zip_longest
+except ImportError:
+    # Python 2
+    from itertools import izip_longest as zip_longest
 
 
 class TableList(object):
@@ -168,7 +173,7 @@ class Table(object):
             #
             def grouper(iterable, length, fillvalue=''):
                 args = [iter(iterable)] * length
-                return itertools.izip_longest(*args, fillvalue=fillvalue)
+                return zip_longest(*args, fillvalue=fillvalue)
 
             for text in grouper(final_cells, table.num_columns):
                 row_data = dict(zip(table.heading, text))
@@ -177,7 +182,7 @@ class Table(object):
         except Exception as e:
             print('Table parse error in table {} - {}: {}'.format(table.doc_table_number,
                                                                   table.full_title,
-                                                                  e.message))
+                                                                  e))
         return table
 
     @staticmethod

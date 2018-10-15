@@ -15,6 +15,12 @@
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
+try:
+    # Python 3
+    from itertools import zip_longest
+except ImportError:
+    # Python 2
+    from itertools import izip_longest as zip_longest
 from transitions import Machine
 from contents import *
 from attributes import AttributeList, Attribute
@@ -68,9 +74,13 @@ class ClassIdList(object):
         cid_heading_section = sections.find_section(cid_section)
 
         if cid_heading_section is not None:
-            cid_table = next((c for c in cid_heading_section.contents
-                              if isinstance(c, Table)), None)
+            cid_table = next((t for t in cid_heading_section.contents
+                              if isinstance(t, Table)), None)
             if cid_table is not None:
+                # We know that the Class ID table has a width of 2. See if a
+                # table fixup is needed (and not detected during pre-parse)
+                cid_table = ClassIdList.fix_me_table(cid_table, 2)
+
                 headings = cid_table.heading
                 for row in cid_table.rows:
                     try:
@@ -88,6 +98,43 @@ class ClassIdList(object):
                         raise              # Not expected
 
         return cid_list
+
+    @staticmethod
+    def fix_me_table(orig_table, width):
+        if orig_table.num_columns == width:
+            return orig_table
+
+        table = Table()
+        table.num_columns = width
+        table.full_title = orig_table.full_title
+        table.short_title = orig_table.short_title
+        table.doc_table_number = orig_table.doc_table_number
+        table.table_number = orig_table.table_number
+        table.heading = tuple(orig_table.heading[n] for n in range(width))
+
+        try:
+            all_cells = [orig_table.heading[n] for n in range(width, orig_table.num_columns)]
+            for row in orig_table.rows:
+                if len(row) == orig_table.num_columns:
+                    all_cells.extend([row[key] for key in orig_table.heading])
+
+                elif len(row) > 0:
+                    heading = [orig_table.heading[n] for n in range(len(row))]
+                    all_cells.extend([row[key] for key in heading])
+
+            def grouper(iterable, length, fillvalue=''):
+                args = [iter(iterable)] * length
+                return zip_longest(*args, fillvalue=fillvalue)
+
+            for text in grouper(all_cells, table.num_columns):
+                row_data = dict(zip(table.heading, text))
+                table.rows.append(row_data)
+
+        except Exception as e:
+            print('Table parse error in table {} - {}: {}'.format(table.doc_table_number,
+                                                                  table.full_title,
+                                                                  e))
+        return table
 
 
 class ClassId(object):

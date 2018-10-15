@@ -110,8 +110,9 @@ class Main(object):
         completed = len([c.state == 'complete' for c in self.class_ids.values()])
         failed = len([c.state == 'failure' for c in self.class_ids.values()])
 
-        print ('Of {} MEs, {} were parsed successfully and {} failed'.format(completed,
-                                                                             failed))
+        print('Of {} MEs, {} were parsed successfully and {} failed'.format(len(self.class_ids),
+                                                                            completed,
+                                                                            failed))
         # Run some sanity checks
         print('\n\n\nValidating ME Class Information:\n')
         for c in self.class_ids.values():
