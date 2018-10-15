@@ -43,7 +43,7 @@ class ThresholdCrossingAlert(object):
                 number = row.get('Alarm number')
                 name = row.get('Threshold crossing alert')
                 # TODO: Next column heading sucks, simplify in pre-parser
-                tca = row.get('Threshold value attribute No. (Note)')
+                tca = row.get('Threshold value attribute No.')
 
                 if number is None or name is None:
                     return None

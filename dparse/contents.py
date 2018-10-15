@@ -78,8 +78,9 @@ def description_parser(content, paragraphs):
                 is_enum_style(paragraph.style):
             return 'normal', ascii_only(paragraph.text)
     else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+        # TODO: Look at 9.1.7 ONU Power shedding ME. Has table in description
+        #       that may be of interest.
+        return 'normal', None
 
     return 'failure'
 
@@ -103,7 +104,9 @@ def relationships_parser(content, paragraphs):
         if is_attributes_header(paragraph):
             return 'attribute', None
 
-        elif is_relationships_text(paragraph):
+        elif is_relationships_text(paragraph) or \
+                is_figure_style(paragraph.style) or \
+                is_figure_title_style(paragraph.style):
             return 'normal', ascii_only(paragraph.text)
     else:
         # TODO: Implement if needed, otherwise remove and fall through
@@ -210,6 +213,9 @@ def notifications_parser(content, paragraphs):
         elif is_tests_header(paragraph):
             return 'test', ascii_only(paragraph.text)
 
+        elif is_eos_heading(paragraph):
+            return 'end_of_section', None
+
         elif is_notifications_text(paragraph):
             return 'normal', ascii_only(paragraph.text)
 
@@ -225,6 +231,9 @@ def notifications_parser(content, paragraphs):
 
         elif is_tests_table(content):
             return 'test', None
+
+        else:
+            return 'normal', None       # Ignore other table types
 
     return 'failure'
 
@@ -283,14 +292,14 @@ def avcs_parser(content, paragraphs):
         elif is_tests_header(paragraph):
             return 'test', ascii_only(paragraph.text)
 
+        elif is_eos_heading(paragraph):
+            return 'end_of_section', None
+
         elif is_avcs_text(paragraph) or \
                 is_normal_style(paragraph.style) or \
                 is_enum_style(paragraph.style) or \
                 is_ignored_heading(paragraph):
             return 'normal', ascii_only(paragraph.text)
-
-        elif is_eos_heading(paragraph):
-            return 'end_of_section', None
 
     elif isinstance(content, Table):
         if is_alarms_table(content):

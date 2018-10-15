@@ -82,7 +82,10 @@ class Main(object):
                      len([c for c in self.class_ids.values()
                           if c.section is not None])))
 
-        crazy_formatted_mes = {23}
+        crazy_formatted_mes = \
+            {23,
+             157,           # Large String
+             }
         print('Skipping the following MEs due to complex document formatting')
         print("    {}".format(crazy_formatted_mes))
         self.class_ids = {k: v for k, v in self.class_ids.items()
@@ -104,6 +107,11 @@ class Main(object):
                                                        camelcase(c.name)))
             c.deep_parse(self.paragraphs)
 
+        completed = len([c.state == 'complete' for c in self.class_ids.values()])
+        failed = len([c.state == 'failure' for c in self.class_ids.values()])
+
+        print ('Of {} MEs, {} were parsed successfully and {} failed'.format(completed,
+                                                                             failed))
         # Run some sanity checks
         print('\n\n\nValidating ME Class Information:\n')
         for c in self.class_ids.values():

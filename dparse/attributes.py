@@ -144,8 +144,10 @@ class Attribute(object):
                 access_item = item.replace('-', '').strip()
                 access_list = access_item.lower().split(',')
                 if all(i in AttributeAccess.keywords() for i in access_list):
-                    assert self.access is None, 'Accessibility has already be decoded'
-                    self.access = AttributeAccess.keywords_to_access_set(access_list)
+                    access = AttributeAccess.keywords_to_access_set(access_list)
+                    assert self.access is None or all(a in self.access for a in access), \
+                        'Accessibility has already be decoded'
+                    self.access = access
                     continue
 
                 # Finally, is a size thing

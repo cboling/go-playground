@@ -279,7 +279,7 @@ class ClassId(object):
                     print('Found something. {}'.format(text))
 
         elif isinstance(content, Table):
-                raise NotImplementedError('TODO: Support Tables')
+            pass        # ignore tables at the 'notification' state
 
     def on_enter_alarms(self, text, content):
         self.parser = alarms_parser

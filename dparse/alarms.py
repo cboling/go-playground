@@ -43,7 +43,7 @@ class Alarm(object):
                 name = row.get('Alarm')
                 tca = row.get('Threshold crossing alert')
                 description = row.get('Description')
-                attribute = row.get('Threshold value attribute No. (Note)')
+                attribute = row.get('Threshold value attribute No.')
 
                 if number is None or (name is None and tca is None):
                     return None
@@ -66,10 +66,24 @@ class Alarm(object):
                                                 description.strip())
 
                 except ValueError:  # Expected if of form  n..m
+                    # Watch out for commentary text in Alarm tables
+                    if 'note' == number[:4].lower():
+                        continue
+
+                    elif '(note)' == number[-6:].lower():
+                        continue    # See 9.9.3
+
+                    # There is one type with the format n.m
+                    values = number.strip().split('.')
+                    if len(values) == 2 and \
+                            0 <= int(values[0]) <= 223 and \
+                            0 <= int(values[1]) <= 223:
+                        continue
+
                     values = number.strip().split('..')
                     assert len(values) == 2 and \
-                        0 <= int(values[0]) <= 223 and \
-                        0 <= int(values[1]) <= 223
+                           0 <= int(values[0]) <= 223 and \
+                           0 <= int(values[1]) <= 223, 'Unexpected format in alarms'
                     pass  # Do not save (just verify n..m assumption)
 
             return alarm

@@ -82,15 +82,20 @@ def is_ignored_heading(paragraph):
 
 def is_eos_heading(paragraph):          # End of ME section - ignore rest
     text = paragraph.text[:12].lower()
-    return 'Heading' in paragraph.style.name[:len('Heading')] and \
-        any(x[:12].lower() in text for x in ('Vendor-specific usage',
-                                             'todo - abc'))
+    return ('Heading' in paragraph.style.name[:len('Heading')] and
+            any(x[:12].lower() in text for x in ('Vendor-specific usage',
+                                                 'todo - impeach'))) or \
+           (is_normal_style(paragraph.style) and
+            any(x[:12].lower() in text for x in ('Supplementary explanation',
+                                                 'todo - trump')))
 
 
 def is_relationships_header(paragraph):
     """ True if this  paragraph is a heading for the Relationships section """
     text = ascii_only(paragraph.text).strip()
-    return text == 'Relationships' and is_heading_style(paragraph.style)
+    return text == 'Relationships' and \
+           (is_heading_style(paragraph.style) or
+            is_style(paragraph.style, 'Normal'))    # See section 9.9.10
 
 
 def is_attributes_header(paragraph):
@@ -102,13 +107,17 @@ def is_attributes_header(paragraph):
 def is_actions_header(paragraph):
     """ True if this paragraph is a heading for the Actions/Message-Types section """
     text = ascii_only(paragraph.text).strip()
-    return text == 'Actions' and is_heading_style(paragraph.style)
+    return text == 'Actions' and \
+           (is_heading_style(paragraph.style) or
+            is_normal_style(paragraph.style))
 
 
 def is_notifications_header(paragraph):
     """ True if this paragraph is a heading for the Notifications section """
     text = ascii_only(paragraph.text).strip()
-    return text == 'Notifications' and is_heading_style(paragraph.style)
+    return text == 'Notifications' and \
+           (is_heading_style(paragraph.style) or
+            is_normal_style(paragraph.style))
 
 
 def is_avcs_header(paragraph):
@@ -172,7 +181,7 @@ def is_actions_style(style):
 
 def is_notifications_style(style):
     """ True if this is a style used for Notifications paragraph text """
-    return is_style(style, 'Attribute')
+    return is_style(style, 'Attribute') or is_normal_style(style)
 
 
 def is_avcs_style(style):
@@ -189,7 +198,7 @@ def is_alarms_style(style):
 
 def is_tests_style(style):
     """ True if this is a style used for Test Results paragraph text """
-    return is_style('Attribute')
+    return is_style(style, 'Attribute')
 
 
 def is_figure_style(style):
@@ -220,12 +229,16 @@ def is_relationships_text(paragraph):
     return not is_relationships_header(paragraph) and \
         (is_relationships_style(paragraph.style) or
          is_attribute_style(paragraph.style) or
-         is_normal_style(paragraph.style))
+         is_normal_style(paragraph.style) or
+         is_style(paragraph.style, 'Description'))  # see 9.9.10
 
 
 def is_attribute_text(paragraph):
     """ True if this is a style used for Attributes paragraph text """
-    return not is_attributes_header(paragraph) and is_attribute_style(paragraph.style)
+    return not (is_attributes_header(paragraph) and
+                is_attribute_style(paragraph.style)) or \
+               (is_heading_style(paragraph.style) and            # For bad formatting in
+                'Value\tINPmin' in ascii_only(paragraph.text))   # section 9.7.7
 
 
 def is_actions_text(paragraph):
