@@ -15,6 +15,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 import re
+import itertools
 from text import ascii_only
 
 
@@ -128,6 +129,58 @@ class Table(object):
                                                             self.full_title)
 
     @staticmethod
+    def table_fixup(orig_table, rows, title):
+        """
+        Recreate the rows of a table that was messed up and initially had too many columns
+        """
+        table = Table()
+        table.doc_table_number = orig_table.doc_table_number
+        table.num_columns = orig_table.num_columns
+        table.full_title = ascii_only(title)
+        table.short_title = table.full_title
+
+        try:
+            all_cells = list()
+            for _, row in enumerate(rows):
+                text = (ascii_only(cell.text).strip() for cell in row.cells)
+                all_cells.extend(text)
+
+            # Skip the title cells
+            all_cells = all_cells[table.num_columns:]
+
+            # Next come the headings
+            table.heading = tuple(all_cells[:table.num_columns])
+            all_cells = all_cells[table.num_columns:]
+
+            # Now iterate through remaining cells in case column with changes again
+            # and we need to clean stuff up. The last cell gets duplicated in a row
+            # to fill the non-existent cell (or the one that should not be there)
+            final_cells = list()
+            for n, c in enumerate(all_cells):
+                if n == 0 or c != final_cells[-1]:
+                    final_cells.append(c)
+
+            # Note: Once table parsing gets to the end of the document (Table
+            #       A.2.39.4 (IP host config info) the table format gets very
+            #       complex and table reformat and decode is pretty darn difficult.
+            #       We will ignore that since this is outside the ME definitions
+            #       that we need.
+            #
+            def grouper(iterable, length, fillvalue=''):
+                args = [iter(iterable)] * length
+                return itertools.izip_longest(*args, fillvalue=fillvalue)
+
+            for text in grouper(final_cells, table.num_columns):
+                row_data = dict(zip(table.heading, text))
+                table.rows.append(row_data)
+
+        except Exception as e:
+            print('Table parse error in table {} - {}: {}'.format(table.doc_table_number,
+                                                                  table.full_title,
+                                                                  e.message))
+        return table
+
+    @staticmethod
     def create(index, doc_table):
         table = Table()
         table.doc_table_number = index
@@ -158,10 +211,23 @@ class Table(object):
 
                     elif all(text_tuple[0].strip().lower() == t.strip().lower()
                              for t in text_tuple[1:]) and table.full_title is None:
+                        # Table with merge row as the title and all are the same
                         table.full_title = next((t.strip() for t in text_tuple
                                                  if len(t.strip())), text_tuple[0])
                         table.short_title = table.full_title
                         continue
+
+                    elif all(text_tuple[0].strip().lower() == t.strip().lower()
+                             for t in text_tuple[1:-1]) and \
+                            len(doc_table.columns) > 3 and table.full_title is None:
+                        # A special case of the previous example, but the merged
+                        # cells have more columns than the table. Probably due to a
+                        # column being deleted before publishing and the header was
+                        # not corrected.  Must have at least 3 'real' columns.
+
+                        table.num_columns = len([y for y in text_tuple if y == text_tuple[0]])
+                        table = Table.table_fixup(table, doc_table.rows, text_tuple[0])
+                        break
 
                     elif (any('table_head' in c.paragraphs[0].style.name.lower()
                               for c in row.cells)
@@ -194,9 +260,9 @@ class Table(object):
             raise
 
     def dump(self, prefix="  "):
-        print('{}Doc Tbl #:   {}', prefix, self.doc_table_number)
-        print('{}Full Title:  {}', prefix, self.full_title)
-        print('{}Short Title: {}', prefix, self.short_title)
-        print('{}Headings:    {}', prefix, self.heading)
-        print('{}# Rows:      {}', prefix, len(self.rows))
-        print('{}# Cols:      {}', prefix, self.num_columns)
+        print('{}Doc Tbl #:   {}'.format(prefix, self.doc_table_number))
+        print('{}Full Title:  {}'.format(prefix, self.full_title))
+        print('{}Short Title: {}'.format(prefix, self.short_title))
+        print('{}Headings:    {}'.format(prefix, self.heading))
+        print('{}# Rows:      {}'.format(prefix, len(self.rows)))
+        print('{}# Cols:      {}'.format(prefix, self.num_columns))

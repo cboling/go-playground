@@ -220,6 +220,9 @@ def notifications_parser(content, paragraphs):
         elif is_alarms_table(content):
             return 'alarm', None
 
+        elif is_tca_table(content):     # TODO: Merge with alarms
+            return 'alarm', None
+
         elif is_tests_table(content):
             return 'test', None
 
@@ -293,6 +296,9 @@ def avcs_parser(content, paragraphs):
         if is_alarms_table(content):
             return 'alarm', None
 
+        elif is_tca_table(content):     # TODO: Merge with alarms
+            return 'alarm', None
+
         elif is_tests_table(content):
             return 'test', None
 
@@ -325,6 +331,9 @@ def tests_parser(content, paragraphs):
             return 'avc', None
 
         elif is_alarms_table(content):
+            return 'alarm', None
+
+        elif is_tca_table(content):     # TODO: Merge with alarms
             return 'alarm', None
 
     return 'failure'

@@ -62,9 +62,8 @@ class Main(object):
         return Document(self.args.ITU)
 
     def start(self):
-        print("Loading ITU Document '{}' and parsed data file '{}'",
-              self.args.ITU, self.args.input)
-
+        print("Loading ITU Document '{}' and parsed data file '{}'".format(self.args.ITU,
+                                                                           self.args.input))
         document = self.load_itu_document()
         self.sections = SectionList()
         self.sections.load(self.args.input)
@@ -75,13 +74,19 @@ class Main(object):
         # self.body = document.element.body
 
         print('Extracting ME Class ID values')
-
         self.class_ids = ClassIdList.parse_sections(self.sections,
                                                     self.args.classes)
 
-        print('Found {} ME Class ID entries. {} have sections associated to them',
-              len(self.class_ids), len([c for c in self.class_ids.values()
-                                        if c.section is not None]))
+        print('Found {} ME Class ID entries. {} have sections associated to them'.
+              format(len(self.class_ids),
+                     len([c for c in self.class_ids.values()
+                          if c.section is not None])))
+
+        crazy_formatted_mes = {23}
+        print('Skipping the following MEs due to complex document formatting')
+        print("    {}".format(crazy_formatted_mes))
+        self.class_ids = {k: v for k, v in self.class_ids.items()
+                          if k not in crazy_formatted_mes}
 
         print('Managed Entities without Sections')
         for c in [c for c in self.class_ids.values() if c.section is None]:
@@ -102,7 +107,7 @@ class Main(object):
         # Run some sanity checks
         print('\n\n\nValidating ME Class Information:\n')
         for c in self.class_ids.values():
-            print('  Class ID: {} - {}', c.cid, c.name)
+            print('  Class ID: {} - {}'.format(c.cid, c.name))
             if len(c.attributes == 0):
                 print('    NO ATTRIBUTES')
 
@@ -110,7 +115,12 @@ class Main(object):
                 if attr.access is None or len(attr.access) == 0:
                     print('    NO ACCESS INFORMATION')
                 # if attr.size is None:
-                #     print('    NO SIZE INFORMATION')
+                #     print('    NO SIZE INFORMATION')      TODO: Get Size decode working
+
+        # Output the results to a JSON file so it can be used by a code-generation
+        # tool
+
+        # TODO: Write it out here.
 
 
 if __name__ == '__main__':

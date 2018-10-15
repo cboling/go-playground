@@ -70,7 +70,7 @@ class AVC(object):
                                               description.strip())
 
                 except ValueError:  # Expected if of form  n..m
-                    # Watch out for commentary text in AVC tables. Ofter a NOTE at the end
+                    # Watch out for commentary text in AVC tables. Often a NOTE at the end
                     if 'note' == number[:4].lower():
                         continue
 
@@ -84,5 +84,5 @@ class AVC(object):
             return avc
 
         except Exception as e:
-            print('Table number parsing error: {}', e.message)
+            print('Table number parsing error: {}'.format(e.message))
             return None

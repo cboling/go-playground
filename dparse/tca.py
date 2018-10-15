@@ -14,12 +14,13 @@
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
-from tca import ThresholdCrossingAlert
 
 
-class Alarm(object):
+class ThresholdCrossingAlert(object):
     """
-    Alarm Notification information.
+    TCA Alarm Notification information.
+
+    TODO: Can we refactot this to be a subclass of Alarms?
     """
     def __init__(self, table):
         # Table number for debug purposes
@@ -27,7 +28,7 @@ class Alarm(object):
 
         # Only defined alarms are in the table
         #   key   -> Alarm number
-        #   value -> (Name, Description)
+        #   value -> (Name, Threshold value Attribute number)
         self._alarms = dict()
 
     @staticmethod
@@ -36,21 +37,16 @@ class Alarm(object):
             return None
 
         try:
-            alarm = Alarm(table)
+            alarm = ThresholdCrossingAlert(table)
 
             for row in table.rows:
                 number = row.get('Alarm number')
-                name = row.get('Alarm')
-                tca = row.get('Threshold crossing alert')
-                description = row.get('Description')
-                attribute = row.get('Threshold value attribute No. (Note)')
+                name = row.get('Threshold crossing alert')
+                # TODO: Next column heading sucks, simplify in pre-parser
+                tca = row.get('Threshold value attribute No. (Note)')
 
-                if number is None or (name is None and tca is None):
+                if number is None or name is None:
                     return None
-
-                if description is None and attribute is not None:
-                    # This is a TCA table
-                    return ThresholdCrossingAlert.create_from_table(table)
 
                 try:
                     value = int(number.strip())
@@ -63,17 +59,20 @@ class Alarm(object):
                         assert value not in alarm._alarms, \
                             'Alarm {} already defined'.format(value)
                         alarm._alarms[value] = (name.strip(),
-                                                description.strip())
+                                                tca.strip())
 
                 except ValueError:  # Expected if of form  n..m
+                    # Watch out for commentary text in TCA tables. Sometimes a NOTE at the end
+                    if 'note' == number[:4].lower():
+                        continue
+
                     values = number.strip().split('..')
                     assert len(values) == 2 and \
                         0 <= int(values[0]) <= 223 and \
                         0 <= int(values[1]) <= 223
-                    pass  # Do not save (just verify n..m assumption)
 
             return alarm
 
         except Exception as e:
-            print('Table number parsing error: {}'.format(e.message))
+            print('TCA table parsing error: {}'.format(e.message))
             return None

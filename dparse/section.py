@@ -79,7 +79,7 @@ class SectionList(object):
 
                         section.contents.append(table)
                     else:
-                        print('Unknown type: {}', type(content))
+                        print('Unknown type: {}'.format(type(content)))
 
                 self._sections.append(section)
 
@@ -101,7 +101,7 @@ class SectionList(object):
 
     def dump(self):
         for num, entry in enumerate(self):
-            print('Section: {}', num)
+            print('Section: {}'.format(num))
             entry.dump()
 
     def find_section(self, section_number):
@@ -187,14 +187,16 @@ class SectionHeading(object):
     def dump(self, prefix="  "):
         tbls = [t for t in self.contents if isinstance(t, Table)]
 
-        print('{}Number      : {} / pts: {}', prefix, self.section_number, self.section_points)
-        print('{}# Paragraphs: {}', prefix, len(self.paragraph_numbers))
-        print('{}# Tables    : {}', prefix, len(tbls))
+        print('{}Number      : {} / pts: {}'.format(prefix,
+                                                    self.section_number,
+                                                    self.section_points))
+        print('{}# Paragraphs: {}'.format(prefix, len(self.paragraph_numbers)))
+        print('{}# Tables    : {}'.format(prefix, len(tbls)))
 
         if len(tbls):
             for tnum, tbl in enumerate(tbls):
-                print('{}  List Entry:  {}', prefix, tnum)
+                print('{}  List Entry:  {}'.format(prefix, tnum))
                 tbl.dump(prefix="  " + prefix)
-            print('{}-------------------------------------', prefix)
+            print('{}-------------------------------------'.format(prefix))
 
 

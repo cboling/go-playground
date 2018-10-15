@@ -160,7 +160,9 @@ def is_relationships_style(style):
 
 def is_attribute_style(style):
     """ True if this is a style used for Attributes paragraph text """
-    return is_style(style, 'Attribute') or is_style(style, 'Note')
+    return is_style(style, 'Attribute') or \
+           is_style(style, 'attribute') or \
+           is_style(style, 'Note')
 
 
 def is_actions_style(style):
@@ -217,7 +219,8 @@ def is_relationships_text(paragraph):
     """ True if this is a style used for Attributes paragraph text """
     return not is_relationships_header(paragraph) and \
         (is_relationships_style(paragraph.style) or
-         is_attribute_style(paragraph.style))
+         is_attribute_style(paragraph.style) or
+         is_normal_style(paragraph.style))
 
 
 def is_attribute_text(paragraph):
@@ -262,6 +265,12 @@ def is_avcs_table(table):
 def is_alarms_table(table):
     """ True if table of alarms notifications """
     phrase = 'alarm'
+    return phrase == table.short_title[:len(phrase)].lower()
+
+
+def is_tca_table(table):
+    """ True if table of Threshold Crossing Alarm notifications """
+    phrase = 'threshold crossing alert'
     return phrase == table.short_title[:len(phrase)].lower()
 
 

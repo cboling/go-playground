@@ -43,7 +43,7 @@ def parse_args():
                         help='Path to ITU G.988 specification document')
 
     parser.add_argument('--output', '-o', action='store',
-                        default='G.988.PreCompiiled.json',
+                        default='G.988.PreCompiled.json',
                         help='Output filename, default: G.988.PreCompiiled.json')
 
     args = parser.parse_args()
@@ -67,12 +67,12 @@ class Main(object):
         print('Number of sections  : {}'.format(len(doc_sections)))
         print('Number of paragraphs: {}'.format(len(paragraphs)))
         print('Number of styles    : {}, {} are built-in styles'.format(len(styles),
-                                                                        len([x for x in styles if x.builtin])))
+                                                                        len([x for x in styles
+                                                                             if x.builtin])))
         print('Number of tables    : {}'.format(len(tables)))
         print('Parsing paragraphs & tables to extract high level information.')
-        print('This will take a little while (4-5 minutes')
-        import datetime
-        print(datetime.datetime.now())
+        print('This will take a little while (4-5 minutes)')
+
         pnum = 0
         tnum = 0
         current_section = None
@@ -102,7 +102,7 @@ class Main(object):
                 tnum += 1
 
             else:
-                print('Unsupported block type: {}', type(block))
+                print('Unsupported block type: {}'.format(type(block)))
 
             if pnum % 25 == 24:
                 print('.', end='')
@@ -112,18 +112,16 @@ class Main(object):
 
         # Save to file
         print('')
-        print(datetime.datetime.now())
         print('Saving Section parsing information to {}'.format(output))
         sections.save(output)
 
         print('Section pre-parsing are complete')
-
-        print("Lets dump as much out as we can to verify some things")
         sections.dump()
 
         # Restore and verify
         sections.load(output)
 
+        print('Dumping data loaded from saved file for verification')
         for section in sections:
             print('  Section: {} -> {}'.format(section, section.section_points))
 

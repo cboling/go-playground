@@ -174,7 +174,7 @@ class ClassId(object):
         self.hidden = False                # Not reported or ignore in MIB upload
 
     def __str__(self):
-        return 'ClassId: {}: {}, State: {}'.format(self.cid, self.name, self.state)
+        return 'Class ID: {}: {}, State: {}'.format(self.cid, self.name, self.state)
 
     def deep_parse(self, paragraphs):
         """ Fill out detailed class information """
@@ -201,7 +201,7 @@ class ClassId(object):
 
             except Exception as e:
                 self.failure(None, None)
-                print("FAILURE: Exiting deep parsing: '{}'", e.message)
+                print("FAILURE: Exiting deep parsing: '{}'".format(e.message))
                 raise       # TODO     break
 
         return self
@@ -276,7 +276,7 @@ class ClassId(object):
                 # Typical to get 'None.' if no notifications supported
                 # TODO: Breakpoint if it is not 'None.' for debugging
                 if 'none' not in ascii_only(text).strip().lower():
-                    print('Found something. {}', text)
+                    print('Found something. {}'.format(text))
 
         elif isinstance(content, Table):
                 raise NotImplementedError('TODO: Support Tables')
