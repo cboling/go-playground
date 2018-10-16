@@ -38,19 +38,23 @@ class Alarm(object):
         try:
             alarm = Alarm(table)
 
-            for row in table.rows:
+            for row_num, row in enumerate(table.rows):
                 number = row.get('Alarm number')
                 name = row.get('Alarm')
-                tca = row.get('Threshold crossing alert')
                 description = row.get('Description')
-                attribute = row.get('Threshold value attribute No.')
+                tca = row.get('Threshold crossing alert')
 
                 if number is None or (name is None and tca is None):
                     return None
 
-                if description is None and attribute is not None:
-                    # This is a TCA table
-                    return ThresholdCrossingAlert.create_from_table(table)
+                if row_num == 0:
+                    col3 = table.heading[2].lower() if table.num_columns > 2 else ''
+                    attribute = 'threshold value attribute' in col3 or \
+                                'threshold data counter' in col3
+
+                    if description is None and attribute:
+                        # This is a TCA table
+                        return ThresholdCrossingAlert.create_from_table(table)
 
                 try:
                     value = int(number.strip())

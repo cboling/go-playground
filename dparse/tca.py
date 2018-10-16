@@ -40,13 +40,12 @@ class ThresholdCrossingAlert(object):
             alarm = ThresholdCrossingAlert(table)
 
             for row in table.rows:
-                number = row.get('Alarm number')
-                name = row.get('Threshold crossing alert')
-                # TODO: Next column heading sucks, simplify in pre-parser
-                tca = row.get('Threshold value attribute No.')
+                number = row.get(table.heading[0])
+                name = row.get(table.heading[1])
+                tca = row.get(table.heading[2])
 
-                if number is None or name is None:
-                    return None
+                if number is None or name is None or tca is None:
+                    return None   # TODO: remove after debugging
 
                 try:
                     value = int(number.strip())

@@ -87,7 +87,7 @@ def is_eos_heading(paragraph):          # End of ME section - ignore rest
                                                  'todo - impeach'))) or \
            (is_normal_style(paragraph.style) and
             any(x[:12].lower() in text for x in ('Supplementary explanation',
-                                                 'todo - trump')))
+                                                 'Table 9.3.13-1')))
 
 
 def is_relationships_header(paragraph):
@@ -221,7 +221,11 @@ def is_enum_style(style):
 
 def is_description_text(paragraph):
     """ True if this is a style used for Attributes paragraph text """
-    return is_description_style(paragraph.style)
+    return is_description_style(paragraph.style) or \
+        is_style(paragraph.style, 'Attribute follower') or \
+           (is_heading_style(paragraph.style) and
+            ('Multicast interworking GEM ' in ascii_only(paragraph.text) or
+             'Discovery of multicast ' in ascii_only(paragraph.text)))   # See 9.2.5
 
 
 def is_relationships_text(paragraph):

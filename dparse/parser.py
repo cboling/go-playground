@@ -82,9 +82,12 @@ class Main(object):
                      len([c for c in self.class_ids.values()
                           if c.section is not None])))
 
+        # TODO: These need more work. skipping for now
         crazy_formatted_mes = \
-            {23,
+            {23,            # CES physical interface performance monitoring history data
              157,           # Large String
+             164,           # MoCA interface performance
+             165,           # VDLS2 line config extensions
              }
         print('Skipping the following MEs due to complex document formatting')
         print("    {}".format(crazy_formatted_mes))
