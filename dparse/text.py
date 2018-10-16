@@ -181,7 +181,8 @@ def is_actions_style(style):
 
 def is_notifications_style(style):
     """ True if this is a style used for Notifications paragraph text """
-    return is_style(style, 'Attribute') or is_normal_style(style)
+    return is_style(style, 'Attribute') or is_normal_style(style) or\
+        is_style(style, 'Description')
 
 
 def is_avcs_style(style):

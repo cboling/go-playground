@@ -88,6 +88,7 @@ class Main(object):
              157,           # Large String
              164,           # MoCA interface performance
              165,           # VDLS2 line config extensions
+             309,           # Multicast operations (Dot1ag)
              }
         print('Skipping the following MEs due to complex document formatting')
         print("    {}".format(crazy_formatted_mes))

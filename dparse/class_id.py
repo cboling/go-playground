@@ -210,8 +210,8 @@ class ClassId(object):
         # Following hold lists of paragraph numbers
         self._description = list()         # Description (paragraph numbers)
         self._relationships = list()       # Relationships paragraph # (if any)
-
         # Following hold lists of associated objects
+        # TODO: Make next three None so we can tell if they ever get decoded
         self.attributes = AttributeList()  # Ordered list of attributes
         self.actions = set()               # Mandatory actions/message-types
         self.optional_actions = set()      # Allowed actions/message-types

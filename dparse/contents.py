@@ -178,8 +178,9 @@ def actions_parser(content, paragraphs):
             return 'normal', None
 
     else:
-        # TODO: Implement if needed, otherwise remove and fall through
-        raise NotImplementedError('Table support')
+        # TODO: look at 9.3.22 Dot1ag MEP. Actions in lower case and also
+        #       has Test action
+        return 'normal', None
 
     return 'failure'
 
