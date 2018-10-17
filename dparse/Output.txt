@@ -1,0 +1,204 @@
+Output from last run on 10/16/2018
+
+
+/home/cboling/PycharmProjects/python-playground/docx-reader/venv/bin/python /opt/tools/pycharm/helpers/pydev/pydevd.py --multiproc --qt-support=auto --client 127.0.0.1 --port 42877 --file /home/cboling/go/go-playground/dparse/parser.py -I T-REC-G.988-201711-I!!MSW-E.docx
+pydev debugger: process 13607 is connecting
+
+Connected to pydev debugger (build 182.4505.26)
+Loading ITU Document 'T-REC-G.988-201711-I!!MSW-E.docx' and parsed data file 'G.988.PreCompiled.json'
+Extracting ME Class ID values
+Found 317 ME Class ID entries. 220 have sections associated to them
+Skipping the following MEs due to complex document formatting
+    set([157, 23, 164, 309, 165])
+Managed Entities without Sections
+       1: ONTB-PON
+       3: PON IF line cardholder
+       4: PON IF line card
+       8: UNIB-PON
+       9: TC AdapterB-PON
+      10: Physical path termination point ATM UNI
+      13: Logical N- 64 kbit/s sub-port connection termination point
+      15: AAL1 profileB-PON
+      17: AAL1 protocol monitoring history dataB-PON
+      19: AAL2 profile
+      20: (Intentionally left blank)
+      22: (Reserved)
+      25: VP network CTPBPON
+      26: ATM VP cross-connection
+      27: Priority queueB-PON
+      28: DBR/CBR traffic descriptor
+      29: UBR traffic descriptor
+      30: SBR1/VBR1 traffic descriptor
+      31: SBR2/VBR2 traffic descriptor
+      32: SBR3/VBR3 traffic descriptor
+      33: ABR traffic descriptor
+      34: GFR traffic descriptor
+      35: ABT/DT/IT traffic descriptor
+      36: UPC disagreement monitoring history dataB-PON
+      37: (Intentionally left blank)
+      38: ANI (B-PON)
+      39: PON TC adapter
+      40: PON physical path termination point
+      41: TC adapter protocol monitoring history data
+      42: Threshold dataB-PON
+      43: Operator specific
+      44: Vendor specific
+      54: Voice CTP
+      55: Voice PM history data
+      56: AAL2 PVC profileB-PON
+      57: AAL2 CPS protocol monitoring history dataB-PON
+      59: LES service profile
+      60: AAL2 SSCS parameter profile1
+      61: AAL2 SSCS parameter profile2
+      63: Traffic schedulerB-PON
+      64: T-CONT buffer
+      65: UBR+ traffic descriptor
+      66: AAL2 SSCS protocol monitoring history dataB-PON
+      67: IP port configuration data
+      68: IP router service profile
+      69: IP router configuration data
+      70: IP router performance monitoring history data 1
+      71: IP router performance monitoring history data 2
+      72: ICMP performance monitoring history data 1
+      73: ICMP performance monitoring history data 2
+      74: IP route table
+      75: IP static routes
+      76: ARP service profile
+      77: ARP configuration data
+      80: Physical path termination point ISDN UNI
+      81: (Reserved)
+      85: ONUB-PON
+      86: ATM VC cross-connection
+      87: VC network CTPB-PON
+      88: VC PM history data
+      91: Physical path termination point IEEE-802.11 UNI
+      92: IEEE- 802.11 station management data 1
+      93: IEEE- 802.11 station management data 2
+      94: IEEE- 802.11 general purpose object
+      95: IEEE- 802.11 MAC and PHY operation and antenna data
+      96: IEEE- 802.11 performance monitoring history data
+      97: IEEE- 802.11 PHY FHSS DSSS IR tables
+     117: Physical path termination point VDSL UNI (ITU-T G.993.1 VDSL1)
+     118: VDSL VTU-O physical data
+     119: VDSL VTU-R physical data
+     120: VDSL channel data
+     121: VDSL line configuration profile
+     122: VDSL channel configuration profile
+     123: VDSL band plan configuration profile
+     124: VDSL VTU-O physical interface monitoring history data
+     125: VDSL VTU-R physical interface monitoring history data
+     126: VDSL VTU-O channel performance monitoring history data
+     127: VDSL VTU-R channel performance monitoring history data
+     128: Video return path service profile
+     129: Video return path performance monitoring history data
+     132: Multicast interworking VCC termination point
+     161: Port-mapping packageBPON (B-PON only; use 297 for G-PON)
+     256: ONU-G (NOTE - In [ITU-T G.984.4] this was called ONT-G)
+     257: ONU2-G (NOTE - In [ITU-T G.984.4] this was called ONT2-G)
+     258: ONU-G (deprecated - note that the name is re-used for code point 256)
+     259: ONU2-G (deprecated - note that the name is re-used for code point 257)
+     260: PON IF line card-G
+     261: PON TC adapter-G
+     265: ATM interworking VCC termination point
+     267: GEM port performance monitoring history data (obsolete)
+     270: VC network CTP-G
+     271: GAL TDM profile (deprecated)
+     275: GAL TDM performance monitoring history data (deprecated)
+     294: TU CTP
+     295: TU performance monitoring history data
+     312: FEC performance monitoring history data
+     349: PoE control
+Of 67 AT&T OpenOMCI MEs, 65 after eliminating hard ones, and 61 after ones with sections
+
+working on 61 AT&T OpenOMCI MEs
+
+Parsing deeper for managed Entities with Sections
+        9.1.3:     2: ONU data -> OnuData
+       9.12.2:   131: OLT-G -> Olt-G
+        9.1.7:   133: ONU power shedding -> OnuPowerShedding
+        9.1.6:     6: Circuit pack -> CircuitPack
+        9.1.4:     7: Software image -> SoftwareImage
+        9.4.3:   136: TCP/UDP config data -> Tcp/UdpConfigData
+       9.12.3:   137: Network address -> NetworkAddress
+       9.9.18:   138: VoIP config data -> VoipConfigData
+        9.5.1:    11: Physical path termination point Ethernet UNI -> PhysicalPathTerminationPointEthernetUni
+        9.2.3:   268: GEM port network CTP -> GemPortNetworkCtp
+       9.3.10:   130: IEEE 802.1p mapper service profile -> Ieee802.1PMapperServiceProfile
+        9.9.5:   142: VoIP media profile -> VoipMediaProfile
+        9.9.7:   143: RTP profile data -> RtpProfileData
+        9.2.7:   272: GAL Ethernet profile -> GalEthernetProfile
+       9.9.15:   152: SIP call initiation performance monitoring history data -> SipCallInitiationPerformanceMonitoringHistoryData
+       9.12.7:   274: Threshold data 2 -> ThresholdData2
+       9.12.4:   148: Authentication security method -> AuthenticationSecurityMethod
+       9.3.13:   171: Extended VLAN tagging operation configuration data -> ExtendedVlanTaggingOperationConfigurationData
+        9.9.3:   150: SIP agent config data -> SipAgentConfigData
+       9.9.14:   151: SIP agent performance monitoring history data -> SipAgentPerformanceMonitoringHistoryData
+        9.5.2:    24: Ethernet performance monitoring history data -> EthernetPerformanceMonitoringHistoryData
+        9.9.2:   153: SIP user data -> SipUserData
+       9.9.16:   155: MGC config data -> MgcConfigData
+       9.9.17:   156: MGC performance monitoring history data -> MgcPerformanceMonitoringHistoryData
+       9.1.12:   158: ONU remote debug -> OnuRemoteDebug
+        9.1.5:     5: Cardholder -> Cardholder
+       9.2.11:   278: Traffic scheduler -> TrafficScheduler
+        9.4.1:   134: IP host config data -> IpHostConfigData
+       9.3.25:   305: Dot1ag CFM stack -> Dot1AgCfmStack
+        9.4.2:   135: IP host performance monitoring history data -> IpHostPerformanceMonitoringHistoryData
+       9.3.20:   300: Dot1ag maintenance association -> Dot1AgMaintenanceAssociation
+        9.3.1:    45: MAC bridge service profile -> MacBridgeServiceProfile
+       9.3.22:   302: Dot1ag MEP -> Dot1AgMep
+        9.3.4:    47: MAC bridge port configuration data -> MacBridgePortConfigurationData
+       9.12.1:   264: UNI-G -> Uni-G
+        9.9.1:    53: Physical path termination point POTS UNI -> PhysicalPathTerminationPointPotsUni
+       9.3.28:   310: Multicast subscriber config info -> MulticastSubscriberConfigInfo
+        9.9.6:    58: Voice service profile -> VoiceServiceProfile
+       9.12.8:   287: OMCI -> Omci
+        9.2.4:   266: GEM interworking termination point -> GemInterworkingTerminationPoint
+       9.3.31:   321: Ethernet frame performance monitoring history data downstream -> EthernetFramePerformanceMonitoringHistoryDataDownstream
+        9.2.2:   262: T-CONT -> T-Cont
+        9.9.4:   139: VoIP voice CTP -> VoipVoiceCtp
+        9.5.5:   329: Virtual Ethernet interface point -> VirtualEthernetInterfacePoint
+Table number parsing error: Invalid attribute number: 0
+       9.3.30:   322: Ethernet frame performance monitoring history data upstream -> EthernetFramePerformanceMonitoringHistoryDataUpstream
+       9.3.14:   290: Dot1X port extension package -> Dot1XPortExtensionPackage
+      9.12.15:   335: SNMP configuration data -> SnmpConfigurationData
+       9.1.14:   336: ONU dynamic power management control -> OnuDynamicPowerManagementControl
+FAILURE: During deep parsing: 'too many values to unpack'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+       9.3.11:    84: VLAN tagging filter data -> VlanTaggingFilterData
+       9.2.13:   341: GEM port network CTP performance monitoring history data -> GemPortNetworkCtpPerformanceMonitoringHistoryData
+       9.2.15:   344: XG-PON TC performance monitoring history data -> Xg-PonTcPerformanceMonitoringHistoryData
+       9.2.16:   345: XG-PON downstream management performance monitoring history data -> Xg-PonDownstreamManagementPerformanceMonitoringHistoryData
+       9.2.17:   346: XG-PON upstream management performance monitoring history data -> Xg-PonUpstreamManagementPerformanceMonitoringHistoryData
+       9.2.12:   280: Traffic descriptor -> TrafficDescriptor
+        9.2.1:   263: ANI-G -> Ani-G
+       9.12.6:   273: Threshold data 1 -> ThresholdData1
+      9.13.11:   332: Enhanced security control -> EnhancedSecurityControl
+FAILURE: During deep parsing: 'too many values to unpack'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+FAILURE: During deep parsing: ''NoneType' object is not callable'
+      9.12.16:   340: BBF TR-069 management server -> BbfTr-069ManagementServer
+        9.2.5:   281: Multicast GEM interworking termination point -> MulticastGemInterworkingTerminationPoint
+       9.3.19:   299: Dot1ag maintenance domain -> Dot1AgMaintenanceDomain
+       9.2.10:   277: Priority queue -> PriorityQueue

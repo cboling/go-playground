@@ -82,6 +82,8 @@ class Main(object):
                      len([c for c in self.class_ids.values()
                           if c.section is not None])))
 
+        num_att_before = len([c for c in self.class_ids.values() if c.cid in att_openomci])
+
         # TODO: These need more work. skipping for now
         crazy_formatted_mes = \
             {23,            # CES physical interface performance monitoring history data
@@ -95,6 +97,8 @@ class Main(object):
         self.class_ids = {k: v for k, v in self.class_ids.items()
                           if k not in crazy_formatted_mes}
 
+        num_att_after_hard_me = len([c for c in self.class_ids.values() if c.cid in att_openomci])
+
         print('Managed Entities without Sections')
         for c in [c for c in self.class_ids.values() if c.section is None]:
             print('    {:>4}: {}'.format(c.cid, c.name))
@@ -102,6 +106,16 @@ class Main(object):
         # Work with what we have
         self.class_ids = {cid: c for cid, c in self.class_ids.items()
                           if c.section is not None}
+
+        num_att_end = len([c for c in self.class_ids.values() if c.cid in att_openomci])
+
+        print('Of {} AT&T OpenOMCI MEs, {} after eliminating hard ones, and {} after ones with sections'.
+              format(num_att_before, num_att_after_hard_me, num_att_end))
+
+        self.class_ids = {cid: c for cid, c in self.class_ids.items()
+                          if c.cid in att_openomci}
+        print('')
+        print('working on {} AT&T OpenOMCI MEs'.format(len(self.class_ids)))
         print('')
         print('Parsing deeper for managed Entities with Sections')
         for c in self.class_ids.values():
@@ -121,7 +135,7 @@ class Main(object):
         print('\n\n\nValidating ME Class Information:\n')
         for c in self.class_ids.values():
             print('  Class ID: {} - {}'.format(c.cid, c.name))
-            if len(c.attributes == 0):
+            if len(c.attributes) == 0:
                 print('    NO ATTRIBUTES')
 
             for attr in c.attributes:
@@ -134,6 +148,77 @@ class Main(object):
         # tool
 
         # TODO: Write it out here.
+
+
+att_openomci = {
+    2,
+    5,
+    6,
+    7,
+    11,
+    24,
+    45,
+    47,
+    53,
+    58,
+    84,
+    130,
+    131,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    142,
+    143,
+    148,
+    150,
+    151,
+    152,
+    153,
+    155,
+    156,
+    157,
+    158,
+    171,
+    256,
+    257,
+    262,
+    263,
+    264,
+    266,
+    268,
+    272,
+    273,
+    274,
+    277,
+    278,
+    280,
+    281,
+    287,
+    290,
+    299,
+    300,
+    302,
+    305,
+    309,
+    310,
+    312,
+    321,
+    322,
+    329,
+    332,
+    335,
+    336,
+    340,
+    341,
+    344,
+    345,
+    346,
+    349,
+}
 
 
 if __name__ == '__main__':

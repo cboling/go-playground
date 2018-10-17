@@ -248,8 +248,8 @@ class ClassId(object):
 
             except Exception as e:
                 self.failure(None, None)
-                print("FAILURE: Exiting deep parsing: '{}'".format(e.message))
-                raise       # TODO     break
+                print("FAILURE: During deep parsing: '{}'".format(e.message))
+                pass
 
         return self
 
