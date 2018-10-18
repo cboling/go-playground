@@ -14,25 +14,12 @@
  * limitations under the License.
  *
  */
-
 package omci
 
-import "github.com/google/gopacket"
-
-var (
-	LayerTypeOMCI = gopacket.RegisterLayerType(1000,
-		gopacket.LayerTypeMetadata{
-			Name: "Frame",
-			Decoder: gopacket.DecodeFunc(decodeOMCI),
-	})
-	LayerTypeOMCIPayload = gopacket.RegisterLayerType(1001,
-		gopacket.LayerTypeMetadata{
-			Name: "Payload",
-			Decoder: gopacket.DecodeFunc(decodeOMCIPayload),
-		})
-	LayerTypeOMCITrailer = gopacket.RegisterLayerType(1002,
-		gopacket.LayerTypeMetadata{
-			Name: "Trailer",
-			Decoder: gopacket.DecodeFunc(decodeOMCITrailer),
-		})
-)
+// Attribute represents a single specific Managed Entity attribute
+type Attribute interface {
+	// Name is the attribute name
+	Name()		string
+	Access()	string		// TODO: For now, just make these strings....
+	Size()		uint
+}

@@ -33,36 +33,16 @@ const (
 	OMCIExtended             = 0x0B
 )
 
-// MsgType represents a Frame message-type
-type MsgType byte
-
-const (
-	// Message Types
-	_                             = iota
-	Create                MsgType = 4
-	Delete                        = 6
-	Set                           = 8
-	Get                           = 9
-	GetAllAlarms                  = 11
-	GetAllAlarmsNext              = 12
-	MibUpload                     = 13
-	MibUploadNext                 = 14
-	MibReset                      = 15
-	AlarmNotification             = 16
-	AttributeValueChange          = 17
-	Test                          = 18
-	StartSoftwareDownload         = 19
-	DownloadSection               = 20
-	EndSoftwareDownload               = 21
-	ActivateSoftware                  = 22
-	CommitSoftware                    = 23
-	SynchronizeTime                   = 24
-	Reboot                        = 25
-	GetNext                       = 26
-	TestResult                    = 27
-	GetCurrentData                = 28
-	SetTable                      = 29 // Defined in Extended Message Set Only
-)
+func (di DeviceIdent) String() string {
+	switch di {
+	default:
+		return "Unknown"
+	case OMCIBaseline:
+		return "Baseline"
+	case OMCIExtended:
+		return "Extended"
+	}
+}
 
 // Frame defines the Baseline (not extended) protocol. Extended will be added once
 // I can get basic working (and layered properly).  See ITU-T G.988 11/2017 section
@@ -74,32 +54,9 @@ type Frame struct {
 	DeviceIdentifier DeviceIdent
 	EntityClass      uint16
 	EntityInstance   uint16
-	//Data             []byte		 // Octets 8:39
+	//Data           []byte		 // Octets 8:39
 	//Trailer	     []byte      // Octets 40:47
 }
-
-//var LayerTypeOMCI gopacket.LayerType
-//var LayerTypeOMCIPayload gopacket.LayerType
-//var LayerTypeOMCITrailer gopacket.LayerType
-//
-//func init() {
-//	LayerTypeOMCI = gopacket.RegisterLayerType(1000,
-//		gopacket.LayerTypeMetadata{
-//			Name:    "Frame",
-//			Decoder: gopacket.DecodeFunc(decodeOMCI),
-//		})
-//	LayerTypeOMCIPayload = gopacket.RegisterLayerType(1001,
-//		gopacket.LayerTypeMetadata{
-//			Name:    "Payload",
-//			Decoder: gopacket.DecodeFunc(decodeOMCIPayload),
-//		})
-//	LayerTypeOMCITrailer = gopacket.RegisterLayerType(1002,
-//		gopacket.LayerTypeMetadata{
-//			Name:    "Trailer",
-//			Decoder: gopacket.DecodeFunc(decodeOMCITrailer),
-//		})
-//
-//}
 
 func (omci *Frame) String() string {
 	return fmt.Sprintf("Frame %v: (%v/%v)", omci.MessageType,
@@ -117,7 +74,14 @@ func (omci *Frame) CanDecode() gopacket.LayerClass {
 
 // NextLayerType returns the layer type contained by this DecodingLayer.
 func (omci *Frame) NextLayerType() gopacket.LayerType {
-	return LayerTypeOMCIPayload
+	switch omci.DeviceIdentifier {
+	case OMCIBaseline:
+		return LayerTypeOMCIBaselineMessage
+
+	case OMCIExtended:
+		return LayerTypeOMCIExtendedMessage
+	}
+	return gopacket.LayerTypeZero
 }
 
 func decodeOMCI(data []byte, p gopacket.PacketBuilder) error {
@@ -136,7 +100,7 @@ func (omci *Frame) DecodeFromBytes(data []byte, p gopacket.PacketBuilder) error 
 	omci.EntityInstance = binary.BigEndian.Uint16(data[6:8])
 
 	//return p.NextDecoder(LayerTypeOMCIPayload)
-	return nil // p.NextDecoder(omci.NextLayerType())
+	return p.NextDecoder(omci.NextLayerType())
 }
 
 // SerializeTo writes the serialized form of this layer into the

@@ -24,9 +24,7 @@ import (
 	"github.com/google/gopacket/layers"
 )
 
-// Frame defines the Baseline (not extended) protocol. Extended will be added once
-// I can get basic working (and layered properly).  See ITU-T G.988 11/2017 section
-// A.3 for more information
+// Trailer defines the 8 octet OMCI trailer
 type Trailer struct {
 	layers.BaseLayer
 	OMCITrailer uint64
@@ -47,7 +45,7 @@ func (omci *Trailer) CanDecode() gopacket.LayerClass {
 
 // NextLayerType returns the layer type contained by this DecodingLayer.
 func (omci *Trailer) NextLayerType() gopacket.LayerType {
-	return gopacket.LayerTypePayload
+	return gopacket.LayerTypeZero
 }
 
 func decodeOMCITrailer(data []byte, p gopacket.PacketBuilder) error {
@@ -60,7 +58,7 @@ func (omci *Trailer) DecodeFromBytes(data []byte, p gopacket.PacketBuilder) erro
 		return errors.New("frame trailer too small")
 	}
 	omci.OMCITrailer = binary.BigEndian.Uint64(data[0:2])
-	return p.NextDecoder(LayerTypeOMCIPayload)
+	return p.NextDecoder(LayerTypeOMCITrailer)
 }
 
 // SerializeTo writes the serialized form of this layer into the

@@ -21,37 +21,37 @@ import (
 	"github.com/google/gopacket"
 )
 
-// Frame defines the Baseline (not extended) protocol. Extended will be added once
-// I can get basic working (and layered properly).  See ITU-T G.988 11/2017 section
-// A.3 for more information
-type Payload struct {
-	Data []byte // Octets 8:39
+// ExtendedMessage defines the OMCI extended protocol. See ITU-T G.988 11/2017 section
+// A.2 for more information
+type ExtendedMessage struct {
+	Length uint16  	// Octets 8:10++
+	Message			// 11...
 }
 
-func (omci *Payload) String() string {
+func (omci *ExtendedMessage) String() string {
 	return fmt.Sprintf("Payload")
 }
 
 // LayerType returns LayerTypeOMCI
-func (omci *Payload) LayerType() gopacket.LayerType {
-	return LayerTypeOMCI
+func (omci *ExtendedMessage) LayerType() gopacket.LayerType {
+	return LayerTypeOMCIExtendedMessage
 }
 
-func (omci *Payload) CanDecode() gopacket.LayerClass {
-	return LayerTypeOMCI
+func (omci *ExtendedMessage) CanDecode() gopacket.LayerClass {
+	return LayerTypeOMCIExtendedMessage
 }
 
 // NextLayerType returns the layer type contained by this DecodingLayer.
-func (omci *Payload) NextLayerType() gopacket.LayerType {
+func (omci *ExtendedMessage) NextLayerType() gopacket.LayerType {
 	return LayerTypeOMCITrailer
 }
 
-func decodeOMCIPayload(data []byte, p gopacket.PacketBuilder) error {
-	omci := &Payload{}
+func decodeOMCIExtendedMessage(data []byte, p gopacket.PacketBuilder) error {
+	omci := &ExtendedMessage{}
 	return omci.DecodeFromBytes(data, p) // TODO: Where is our exposed access function ?
 }
 
-func (omci *Payload) DecodeFromBytes(data []byte, p gopacket.PacketBuilder) error {
+func (omci *ExtendedMessage) DecodeFromBytes(data []byte, p gopacket.PacketBuilder) error {
 
 	//omci.TransactionID 	  = binary.BigEndian.Uint16(data[0:2])
 	//omci.MessageType      = MsgType(data[3])
@@ -65,7 +65,7 @@ func (omci *Payload) DecodeFromBytes(data []byte, p gopacket.PacketBuilder) erro
 // SerializeTo writes the serialized form of this layer into the
 // SerializationBuffer, implementing gopacket.SerializableLayer.
 // See the docs for gopacket.SerializableLayer for more info.
-func (omci *Payload) SerializeTo(b gopacket.SerializeBuffer, opts gopacket.SerializeOptions) error {
+func (omci *ExtendedMessage) SerializeTo(b gopacket.SerializeBuffer, opts gopacket.SerializeOptions) error {
 	// Basic (common) Frame Header is 8 octets, 10
 	//bytes, err := b.PrependBytes(8)
 	//if err != nil {
