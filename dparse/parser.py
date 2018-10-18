@@ -87,11 +87,12 @@ class Main(object):
         # TODO: These need more work. skipping for now
         crazy_formatted_mes = \
             {23,            # CES physical interface performance monitoring history data
-             157,           # Large String
              164,           # MoCA interface performance
              165,           # VDLS2 line config extensions
-             309,           # Multicast operations (Dot1ag)
+             157,           # Large String                      (part of AT&T OpenOMCI v3.0)
+             309,           # Multicast operations (Dot1ag)     (part of AT&T OpenOMCI v3.0)
              }
+
         print('Skipping the following MEs due to complex document formatting')
         print("    {}".format(crazy_formatted_mes))
         self.class_ids = {k: v for k, v in self.class_ids.items()
@@ -136,7 +137,7 @@ class Main(object):
         for c in self.class_ids.values():
             print('  Class ID: {} - {}'.format(c.cid, c.name))
             if len(c.attributes) == 0:
-                print('    NO ATTRIBUTES')
+                print('    NO ATTRIBUTES')      # TODO Look for 'set' without 'get'
 
             for attr in c.attributes:
                 if attr.access is None or len(attr.access) == 0:
