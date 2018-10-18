@@ -14,6 +14,7 @@
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
+import re
 from enum import IntEnum
 from text import *
 
@@ -102,5 +103,16 @@ class Actions(IntEnum):
                 # TODO: Change next to a return None after debugging all actions in doc
                 assert all(a is not None for a in actions), \
                     'Partial decode: {}'.format(text)
+        else:
+            # Some actions are not in bold. Check text until no keywords found
+            text = paragraph.text.split(',')
+            actions = set()
+
+            for name in text:
+                if len(name.strip()):
+                    action = Actions.keywords_to_access_set(name.strip())
+                    if action is None:
+                        break
+                    actions.add(action)
 
         return actions

@@ -84,7 +84,7 @@ def is_eos_heading(paragraph):          # End of ME section - ignore rest
     text = paragraph.text[:12].lower()
     return ('Heading' in paragraph.style.name[:len('Heading')] and
             any(x[:12].lower() in text for x in ('Vendor-specific usage',
-                                                 'todo - impeach'))) or \
+                                                 'Supplementary information'))) or \
            (is_normal_style(paragraph.style) and
             any(x[:12].lower() in text for x in ('Supplementary explanation',
                                                  'Table 9.3.13-1')))
@@ -176,13 +176,14 @@ def is_attribute_style(style):
 
 def is_actions_style(style):
     """ True if this is a style used for Actions paragraph text """
-    return is_style(style, 'Attribute')
+    return is_style(style, 'Attribute') or is_style(style, 'toc')      # See 9.1.14
 
 
 def is_notifications_style(style):
     """ True if this is a style used for Notifications paragraph text """
     return is_style(style, 'Attribute') or is_normal_style(style) or\
-        is_style(style, 'Description')
+        is_style(style, 'Description') or\
+        is_style(style, 'toc')                          # See 9.1.14
 
 
 def is_avcs_style(style):

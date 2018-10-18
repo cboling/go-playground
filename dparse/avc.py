@@ -61,13 +61,15 @@ class AVC(object):
                 description = row.get('Description')
 
                 try:
-                    value = int(number.strip())
-                    assert 1 <= value <= 16, 'Invalid attribute number: {}'.format(value)
-
                     is_avc = name.strip().lower() not in ('n/a', 'Reserved')
-                    avc._attributes[value] = (is_avc,
-                                              name.strip(),
-                                              description.strip())
+                    if is_avc:
+                        value = int(number.strip())
+                        assert 1 <= value <= 16, 'Invalid attribute number: {}'.format(value)
+
+                        is_avc = name.strip().lower() not in ('n/a', 'Reserved')
+                        avc._attributes[value] = (is_avc,
+                                                  name.strip(),
+                                                  description.strip())
 
                 except ValueError:  # Expected if of form  n..m
                     # Watch out for commentary text in AVC tables. Often a NOTE at the end
@@ -76,7 +78,9 @@ class AVC(object):
 
                     values = number.strip().split('..')
                     for value in range(int(values[0]), int(values[1]) + 1):
-                        assert 1 <= value <= 16, 'Invalid attribute number: {}'.format(value)
+                        # NOTE: Attributes are usually 1..16 but ME 329 (vEth Interface Point)
+                        #       has an n/a entry coded 0..1
+                        assert 0 <= value <= 16, 'Invalid attribute number: {}'.format(value)
                         avc._attributes[value] = (False,
                                                   name.strip(),
                                                   description.strip())

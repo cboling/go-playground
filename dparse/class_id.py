@@ -231,6 +231,7 @@ class ClassId(object):
         self._paragraphs = paragraphs
         for content in self.section.contents:
             try:
+
                 if isinstance(content, int):
                     # Paragraph number
                     trigger, text = self.parser(content, paragraphs)
@@ -248,8 +249,9 @@ class ClassId(object):
 
             except Exception as e:
                 self.failure(None, None)
-                print("FAILURE: During deep parsing: '{}'".format(e.message))
-                pass
+                print("FAILURE: During deep parsing. Content: {}: '{}'".format(content,
+                                                                               e.message))
+                raise
 
         return self
 
