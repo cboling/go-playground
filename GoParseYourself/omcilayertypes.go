@@ -17,12 +17,18 @@
 
 package GoParseYourself
 
-import "github.com/google/gopacket"
-
-var (
-	LayerTypeOMCI = gopacket.RegisterLayerType(999,
-		gopacket.LayerTypeMetadata{
-			Name: "OMCI",
-			Decoder: gopacket.DecodeFunc(decodeOMCI),
+LayerTypeOMCI := gopacket.RegisterLayerType(1000,
+	gopacket.LayerTypeMetadata{
+		Name: "OMCI",
+		Decoder: gopacket.DecodeFunc(decodeOMCI),
+})
+LayerTypeOMCIPayload := gopacket.RegisterLayerType(1001,
+	gopacket.LayerTypeMetadata{
+		Name: "OMCIPayload",
+		Decoder: gopacket.DecodeFunc(decodeOMCIPayload),
 	})
-)
+LayerTypeOMCITrailer := gopacket.RegisterLayerType(1002,
+	gopacket.LayerTypeMetadata{
+		Name: "OMCITrailer",
+		Decoder: gopacket.DecodeFunc(decodeOMCITrailer),
+	})

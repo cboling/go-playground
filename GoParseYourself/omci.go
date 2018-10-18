@@ -17,8 +17,11 @@
 package GoParseYourself
 
 import (
+	"encoding/binary"
+	"errors"
+	"fmt"
 	"github.com/google/gopacket"
-	layers "github.com/google/gopacket/layers"
+	"github.com/google/gopacket/layers"
 )
 
 type OMCIDeviceIdent byte
@@ -71,24 +74,70 @@ type OMCI struct {
 	DeviceIdentifier OMCIDeviceIdent
 	EntityClass		 uint16
 	EntityInstance	 uint16
-	// OMCI Message Type specific data begins here.  It occupies bytes 9-40
-	Data             []byte
-	OMCITrailer		 uint32
+	//Data             []byte		 // Octets 8:39
+	//OMCITrailer	     []byte      // Octets 40:47
 }
 
 
-// CanDecode returns the set of layer types that this DecodingLayer can decode.
+func (omci *OMCI) String() string {
+	return fmt.Sprintf("OMCI %v: (%v/%v)", omci.MessageType,
+		omci.EntityClass, omci.EntityInstance)
+}
+
+// LayerType returns LayerTypeOMCI
+func (omci *OMCI) LayerType() gopacket.LayerType {
+	return LayerTypeOMCI
+}
+
 func (omci *OMCI) CanDecode() gopacket.LayerClass {
 	return LayerTypeOMCI
 }
 
 // NextLayerType returns the layer type contained by this DecodingLayer.
 func (omci *OMCI) NextLayerType() gopacket.LayerType {
-	return gopacket.LayerTypePayload
+	return LayerTypeOMCIPayload
 }
 
 func decodeOMCI(data []byte, p gopacket.PacketBuilder) error {
-
 	omci := &OMCI{}
-	return layers.decodingLayerDecoder(omci, data, p)	// TODO: Where is our exposed access function ?
+	return omci.DecodeFromBytes(data, p)
 }
+
+func (omci *OMCI) DecodeFromBytes(data []byte, p gopacket.PacketBuilder) error {
+	if len(data) < 8 {
+		return errors.New("OMCI packet header too small")
+	}
+	omci.TransactionID 	  = binary.BigEndian.Uint16(data[0:2])
+	omci.MessageType      = OMCIMsgType(data[3])
+	omci.DeviceIdentifier = OMCIDeviceIdent(data[4])
+	omci.EntityClass      = binary.BigEndian.Uint16(data[4:6])
+	omci.EntityInstance   = binary.BigEndian.Uint16(data[6:8])
+	return p.NextDecoder(LayerTypeOMCIPayload)
+}
+
+// SerializeTo writes the serialized form of this layer into the
+// SerializationBuffer, implementing gopacket.SerializableLayer.
+// See the docs for gopacket.SerializableLayer for more info.
+func (omci *OMCI) SerializeTo(b gopacket.SerializeBuffer, opts gopacket.SerializeOptions) error {
+	// Basic (common) OMCI Header is 8 octets, 10
+	bytes, err := b.PrependBytes(8)
+	if err != nil {
+		return err
+	}
+	binary.BigEndian.PutUint16(bytes, omci.TransactionID)
+	bytes[2] = byte(omci.MessageType)
+	bytes[3] = byte(omci.DeviceIdentifier)
+	binary.BigEndian.PutUint16(bytes[4:], omci.EntityClass)
+	binary.BigEndian.PutUint16(bytes[6:], omci.EntityInstance)
+
+	length := 48	// TODO: Only Baseline Messages currently supported
+	padding, err := b.AppendBytes(length - 8)
+	if err != nil {
+		return err
+	}
+	copy(padding, lotsOfZeros[:])
+	return nil
+}
+
+// hacky way to zero out memory... there must be a better way?
+var lotsOfZeros [48]byte

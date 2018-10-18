@@ -18,9 +18,9 @@
 package GoParseYourself
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 )
 
 // TODO: Will focus on creation of an OMCI Frame decoder  (separate one for encode).
@@ -34,17 +34,34 @@ import (
 
 // TODO: Read over Brad Israel's blog article:  http://www.bisrael8191.com/Go-Packet-Sniffer/
 
-func main() {
-	packet := gopacket.NewPacket(myPacketData, layers.LayerTypeEthernet, gopacket.Default)
-	// Get the TCP layer from this packet
-	if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
-		fmt.Println("This is a TCP packet!")
-		// Get actual TCP data from this layer
-		tcp, _ := tcpLayer.(*layers.TCP)
-		fmt.Printf("From src port %d to dst port %d\n", tcp.SrcPort, tcp.DstPort)
+func string_to_packet(input string) ([]byte, error) {
+	var p []byte
+	size := len(input)/2
+
+	p, err := hex.DecodeString(input)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
-	// Iterate over all layers, printing out each layer type
-	for _, layer := range packet.Layers() {
-		fmt.Println("PACKET LAYER:", layer.LayerType())
+	fmt.Println(p)
+
+	p2 := make([]byte, size, size)
+	fmt.Println(p2)
+	return p, nil
+}
+
+
+func main() {
+
+	var MibResetRequest = "00014F0A000200000000000000000000" +
+		"00000000000000000000000000000000" +
+		"000000000000000000000028"
+
+	data, err := string_to_packet(MibResetRequest)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		packet := gopacket.NewPacket(data, LayerTypeOMCI, gopacket.Lazy)
+		fmt.Println(packet)
 	}
 }
