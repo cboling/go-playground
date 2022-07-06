@@ -1,5 +1,5 @@
 Jinja2==2.11.2
-lxml==4.2.5
+lxml==4.9.1
 MarkupSafe==1.0
 more-itertools==4.3.0
 Pillow==8.0.0
